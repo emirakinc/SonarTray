@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using SonarTray.Native;
 using SonarTray.Services;
 using SonarTray.ViewModels;
@@ -30,7 +31,6 @@ public sealed class TrayIconHost : IDisposable
     private readonly Action _leftClick;
     private readonly TrayIconCache _cache = new();
     private readonly DispatcherTimer _coalesce;
-    private readonly int _size;
 
     private TrayIconKey? _applied;
     private DateTime _lastApplyUtc = DateTime.MinValue;
@@ -42,7 +42,6 @@ public sealed class TrayIconHost : IDisposable
         _master = mixer.Master;
         _popup = popup;
         _leftClick = leftClick;
-        _size = SmallIconSize();
 
         _coalesce = new DispatcherTimer(DispatcherPriority.Background) { Interval = MinInterval };
         _coalesce.Tick += (_, _) => { _coalesce.Stop(); Apply(); };
@@ -54,14 +53,24 @@ public sealed class TrayIconHost : IDisposable
 
         connection.StateChanged += OnStateChanged;
         _master.PropertyChanged += OnMasterChanged;
+        SystemEvents.DisplaySettingsChanged += OnDisplaySettingsChanged;
     }
 
+    /// <summary>
+    /// Read fresh every time rather than cached at construction: a display-scale change would
+    /// otherwise leave the tray drawing a stale, blurry size for the rest of the session. Two
+    /// cheap P/Invokes, and the call sites are already throttled.
+    /// </summary>
     private static int SmallIconSize()
     {
         uint dpi = NativeMethods.GetDpiForSystem();
         int metric = NativeMethods.GetSystemMetricsForDpi(NativeMethods.SM_CXSMICON, dpi);
         return metric > 0 ? metric : Math.Max(16, (int)Math.Round(16 * dpi / 96.0));
     }
+
+    /// <summary>Raised on a dedicated SystemEvents thread; the cache and GDI+ are UI-thread only.</summary>
+    private void OnDisplaySettingsChanged(object? sender, EventArgs e)
+        => _popup.Dispatcher.BeginInvoke(new Action(Request));
 
     private void OnMouseUp(object? sender, WF.MouseEventArgs e)
     {
@@ -124,7 +133,7 @@ public sealed class TrayIconHost : IDisposable
     }
 
     private TrayIconKey Desired()
-        => TrayIconCache.Key(_size, ToneFor(_connection.State), TrayIconFactory.LevelFor(_master.Volume), _master.IsMuted);
+        => TrayIconCache.Key(SmallIconSize(), ToneFor(_connection.State), TrayIconFactory.LevelFor(_master.Volume), _master.IsMuted);
 
     private static IconTone ToneFor(ConnectionState state) => state switch
     {
@@ -150,6 +159,7 @@ public sealed class TrayIconHost : IDisposable
         _coalesce.Stop();
         _connection.StateChanged -= OnStateChanged;
         _master.PropertyChanged -= OnMasterChanged;
+        SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; // static event: leaks this instance otherwise
 
         _icon.Visible = false; // otherwise a ghost icon lingers until hovered
         _icon.Icon = null;     // the shell must let go of the HICON before the cache destroys it
