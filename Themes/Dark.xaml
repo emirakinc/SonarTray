@@ -119,7 +119,9 @@
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="Minimum" Value="0"/>
         <Setter Property="Maximum" Value="1"/>
-        <Setter Property="IsMoveToPointEnabled" Value="True"/>
+        <!-- Deliberately off: it marks PreviewMouseLeftButtonDown handled and only jumps the
+             value, never starting a drag. SliderInteraction handles track presses instead. -->
+        <Setter Property="IsMoveToPointEnabled" Value="False"/>
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="Foreground" Value="{StaticResource AccentBrush}"/>
         <Setter Property="Template">
