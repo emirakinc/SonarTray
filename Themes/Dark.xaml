@@ -451,10 +451,16 @@
         </Setter>
     </Style>
 
-    <!-- ===== ToolTip ===== -->
+    <!-- ===== ToolTip =====
+         Font is pinned, not inherited: a ToolTip takes inheritable properties from the element it
+         is attached to, so on an IconButton (which carries the icon font for its glyph) the text
+         would render as tofu boxes. -->
     <Style TargetType="ToolTip">
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+        <Setter Property="FontFamily" Value="Segoe UI Variable Text, Segoe UI"/>
+        <Setter Property="FontSize" Value="12"/>
+        <Setter Property="FontWeight" Value="Normal"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToolTip">
