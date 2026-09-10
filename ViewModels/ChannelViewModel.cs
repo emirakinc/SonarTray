@@ -124,11 +124,7 @@ public sealed class ChannelViewModel : ObservableObject
         _isSyncing = true;
         try
         {
-            if (state is not null)
-            {
-                if (!IsVolumeBusy) Volume = state.Volume;
-                if (!_muteInFlight) IsMuted = state.Muted;
-            }
+            ApplyVolumeState(state);
 
             if (HasDevicePicker)
             {
@@ -154,6 +150,24 @@ public sealed class ChannelViewModel : ObservableObject
         {
             _isSyncing = false;
         }
+    }
+
+    /// <summary>
+    /// Volume and mute only. Used by the idle poll, which fetches just the volume document
+    /// while the panel is closed so the tray icon does not go stale.
+    /// </summary>
+    public void ApplyVolumeFromServer(VolumeStateDto? state)
+    {
+        _isSyncing = true;
+        try { ApplyVolumeState(state); }
+        finally { _isSyncing = false; }
+    }
+
+    private void ApplyVolumeState(VolumeStateDto? state)
+    {
+        if (state is null) return;
+        if (!IsVolumeBusy) Volume = state.Volume;
+        if (!_muteInFlight) IsMuted = state.Muted;
     }
 
     /// <summary>In-place diff so the ComboBox never sees Clear() (which would reset its selection).</summary>

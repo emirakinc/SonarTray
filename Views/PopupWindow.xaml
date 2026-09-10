@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:SonarTray.Views"
         Title="Sonar Mixer"
-        Width="520" Height="326"
+        Width="540"
         WindowStyle="None" ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
         ShowActivated="True" AllowsTransparency="False" WindowStartupLocation="Manual"
         Background="{StaticResource BgBrush}" Foreground="{StaticResource TextBrush}"
@@ -11,88 +11,152 @@
         UseLayoutRounding="True" SnapsToDevicePixels="True"
         TextOptions.TextFormattingMode="Display" TextOptions.TextRenderingMode="ClearType">
 
-    <Border x:Name="RootBorder" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="14,10,14,10">
-        <DockPanel>
+    <!-- Height is computed in the constructor from the channel count; see PopupWindow.xaml.cs.
+         Background stays opaque here: that is the fallback when the acrylic backdrop is
+         unavailable, and TryApplyAcrylic only overrides it once every gate has passed. -->
+    <Border x:Name="RootBorder" BorderBrush="{StaticResource LineBrush}" BorderThickness="1" Padding="12">
+        <Grid x:Name="ContentHost" Opacity="0">
+            <Grid.RenderTransform>
+                <TranslateTransform x:Name="ContentSlide" Y="8"/>
+            </Grid.RenderTransform>
 
-            <!-- Header -->
-            <Grid DockPanel.Dock="Top" Height="30" Margin="0,0,0,6">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
+            <DockPanel>
 
-                <Ellipse Grid.Column="0" Width="8" Height="8" VerticalAlignment="Center" Margin="2,0,8,0">
-                    <Ellipse.Style>
-                        <Style TargetType="Ellipse">
-                            <Setter Property="Fill" Value="{StaticResource MutedTextBrush}"/>
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsConnected}" Value="True">
-                                    <Setter Property="Fill" Value="{StaticResource SuccessBrush}"/>
-                                </DataTrigger>
-                                <DataTrigger Binding="{Binding IsStreamMode}" Value="True">
-                                    <Setter Property="Fill" Value="{StaticResource WarnBrush}"/>
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Ellipse.Style>
-                </Ellipse>
+                <!-- Header -->
+                <Grid DockPanel.Dock="Top" Height="32" Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <TextBlock Grid.Column="1" Text="Sonar Mixer" FontWeight="Bold" FontSize="14" VerticalAlignment="Center"/>
-                <TextBlock Grid.Column="2" Text="{Binding StatusText}" Foreground="{StaticResource MutedTextBrush}"
-                           FontSize="12" VerticalAlignment="Center" Margin="10,0,0,0" TextTrimming="CharacterEllipsis"/>
+                    <!-- Same three-bar mark the tray icon draws. -->
+                    <Border Grid.Column="0" Width="26" Height="26" CornerRadius="8" Background="{StaticResource AccentDimBrush}"
+                            VerticalAlignment="Center">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Height="14">
+                            <Rectangle Width="3" Height="8" RadiusX="1.5" RadiusY="1.5" Margin="0,0,2,0"
+                                       Fill="{StaticResource AccentBrush}" VerticalAlignment="Bottom"/>
+                            <Rectangle Width="3" Height="14" RadiusX="1.5" RadiusY="1.5" Margin="0,0,2,0"
+                                       Fill="{StaticResource AccentBrush}" VerticalAlignment="Bottom"/>
+                            <Rectangle Width="3" Height="11" RadiusX="1.5" RadiusY="1.5"
+                                       Fill="{StaticResource AccentBrush}" VerticalAlignment="Bottom"/>
+                        </StackPanel>
+                    </Border>
 
-                <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE8A7;" AutomationProperties.Name="GG"
-                        ToolTip="SteelSeries GG'yi aç" Command="{Binding OpenGgCommand}"/>
-                <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE72C;" AutomationProperties.Name="Yenile"
-                        ToolTip="Yenile" Command="{Binding RefreshCommand}" Margin="4,0,0,0"/>
-            </Grid>
+                    <TextBlock Grid.Column="1" Text="Sonar Mixer" FontWeight="SemiBold" FontSize="14"
+                               VerticalAlignment="Center" Margin="10,0,0,0"/>
 
-            <!-- Footer -->
-            <Grid DockPanel.Dock="Bottom" Height="30" Margin="0,6,0,0">
-                <CheckBox Style="{StaticResource DarkCheckBox}" Content="Windows ile başlat"
-                          IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
-                          HorizontalAlignment="Left" VerticalAlignment="Center"/>
-                <Button Style="{StaticResource FlatButton}" Content="Çıkış" Command="{Binding ExitCommand}"
-                        HorizontalAlignment="Right" VerticalAlignment="Center"/>
-            </Grid>
+                    <Border Grid.Column="2" CornerRadius="10" Height="20" Padding="8,0" Margin="10,0,8,0"
+                            HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <Border.Style>
+                            <Style TargetType="Border">
+                                <Setter Property="Background" Value="{StaticResource MutedDimBrush}"/>
+                                <Setter Property="TextElement.Foreground" Value="{StaticResource MutedTextBrush}"/>
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsConnected}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource SuccessDimBrush}"/>
+                                        <Setter Property="TextElement.Foreground" Value="{StaticResource SuccessBrush}"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsStreamMode}" Value="True">
+                                        <Setter Property="Background" Value="{StaticResource WarnDimBrush}"/>
+                                        <Setter Property="TextElement.Foreground" Value="{StaticResource WarnBrush}"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Border.Style>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <Ellipse Width="6" Height="6" VerticalAlignment="Center"
+                                     Fill="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource Self}}">
+                                <Ellipse.Style>
+                                    <Style TargetType="Ellipse">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionState}" Value="Searching">
+                                                <DataTrigger.EnterActions>
+                                                    <BeginStoryboard x:Name="PulseStoryboard">
+                                                        <Storyboard>
+                                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                             From="1" To="0.25" Duration="0:0:0.7"
+                                                                             AutoReverse="True" RepeatBehavior="Forever"/>
+                                                        </Storyboard>
+                                                    </BeginStoryboard>
+                                                </DataTrigger.EnterActions>
+                                                <DataTrigger.ExitActions>
+                                                    <StopStoryboard BeginStoryboardName="PulseStoryboard"/>
+                                                </DataTrigger.ExitActions>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Ellipse.Style>
+                            </Ellipse>
+                            <TextBlock Text="{Binding StatusText}" FontSize="11" FontWeight="SemiBold"
+                                       Margin="6,0,0,0" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
 
-            <!-- Rows + overlays -->
-            <Grid>
-                <ItemsControl ItemsSource="{Binding Channels}" IsEnabled="{Binding IsConnected}" Focusable="False">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <views:ChannelRow/>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE8A7;" AutomationProperties.Name="GG"
+                            ToolTip="SteelSeries GG'yi aç" Command="{Binding OpenGgCommand}"/>
+                    <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE72C;" AutomationProperties.Name="Yenile"
+                            ToolTip="Yenile" Command="{Binding RefreshCommand}" Margin="4,0,0,0"/>
+                </Grid>
 
-                <Border Background="{StaticResource OverlayBrush}" CornerRadius="8"
-                        Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="26"
-                                   Foreground="{StaticResource MutedTextBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                        <TextBlock Text="Sonar bulunamadı" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                        <TextBlock Text="SteelSeries GG çalışıyor mu?" Foreground="{StaticResource MutedTextBrush}"
-                                   HorizontalAlignment="Center" Margin="0,2,0,10"/>
-                        <Button Style="{StaticResource AccentButton}" Content="Yeniden dene"
-                                Command="{Binding RetryCommand}" HorizontalAlignment="Center"/>
+                <!-- Footer, then the rule above it: DockPanel stacks Bottom children outward-in. -->
+                <Grid DockPanel.Dock="Bottom" Height="30" Margin="0,8,0,0">
+                    <CheckBox Style="{StaticResource DarkCheckBox}" Content="Windows ile başlat"
+                              IsChecked="{Binding StartWithWindows, Mode=TwoWay}"
+                              HorizontalAlignment="Left" VerticalAlignment="Center"/>
+                    <Button Style="{StaticResource FlatButton}" Content="Çıkış" Command="{Binding ExitCommand}"
+                            HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                </Grid>
+                <Border DockPanel.Dock="Bottom" Height="1" Background="{StaticResource GlassLineBrush}"/>
+
+                <!-- Rows + overlays -->
+                <Grid>
+                    <StackPanel IsEnabled="{Binding IsConnected}">
+                        <views:MasterRow DataContext="{Binding Master}" Margin="0,0,0,12"/>
+                        <ItemsControl ItemsSource="{Binding SubChannels}" Focusable="False">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <views:ChannelRow/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
-                </Border>
 
-                <Border Background="{StaticResource OverlayBrush}" CornerRadius="8"
-                        Visibility="{Binding IsStreamMode, Converter={StaticResource BoolToVis}}">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="&#xE7F4;" FontFamily="{StaticResource IconFont}" FontSize="26"
-                                   Foreground="{StaticResource WarnBrush}" HorizontalAlignment="Center" Margin="0,0,0,8"/>
-                        <TextBlock Text="Sonar Stream modunda" FontSize="14" FontWeight="SemiBold" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Bu araç yalnızca Classic modu destekler." Foreground="{StaticResource MutedTextBrush}"
-                                   HorizontalAlignment="Center" Margin="0,2,0,0"/>
-                    </StackPanel>
-                </Border>
-            </Grid>
-        </DockPanel>
+                    <Border Background="{StaticResource OverlayBrush}" CornerRadius="10"
+                            Visibility="{Binding IsOffline, Converter={StaticResource BoolToVis}}">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Border Width="52" Height="52" CornerRadius="26" Background="{StaticResource MutedDimBrush}"
+                                    HorizontalAlignment="Center" Margin="0,0,0,12">
+                                <TextBlock Text="&#xE7BA;" FontFamily="{StaticResource IconFont}" FontSize="24"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Sonar bulunamadı" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="SteelSeries GG çalışıyor mu?" Foreground="{StaticResource MutedTextBrush}"
+                                       HorizontalAlignment="Center" Margin="0,3,0,14"/>
+                            <Button Style="{StaticResource AccentButton}" Content="Yeniden dene"
+                                    Command="{Binding RetryCommand}" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Background="{StaticResource OverlayBrush}" CornerRadius="10"
+                            Visibility="{Binding IsStreamMode, Converter={StaticResource BoolToVis}}">
+                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                            <Border Width="52" Height="52" CornerRadius="26" Background="{StaticResource WarnDimBrush}"
+                                    HorizontalAlignment="Center" Margin="0,0,0,12">
+                                <TextBlock Text="&#xE7F4;" FontFamily="{StaticResource IconFont}" FontSize="24"
+                                           Foreground="{StaticResource WarnBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                            <TextBlock Text="Sonar Stream modunda" FontSize="15" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+                            <TextBlock Text="Bu araç yalnızca Classic modu destekler." Foreground="{StaticResource MutedTextBrush}"
+                                       HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </DockPanel>
+        </Grid>
     </Border>
 </Window>

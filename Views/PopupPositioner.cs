@@ -4,6 +4,15 @@ using SonarTray.Native;
 
 namespace SonarTray.Views;
 
+/// <summary>Which screen edge the taskbar sits on; the entrance animation slides away from it.</summary>
+internal enum TaskbarEdge
+{
+    Bottom,
+    Top,
+    Left,
+    Right,
+}
+
 /// <summary>
 /// Places the popup next to the taskbar corner nearest the cursor, entirely in physical pixels
 /// (the process is PerMonitorV2, so Cursor/Screen report physical coordinates).
@@ -12,7 +21,8 @@ internal static class PopupPositioner
 {
     private const double MarginDip = 8;
 
-    public static void Place(Window window)
+    /// <summary>Moves the window and reports the taskbar edge it was docked against.</summary>
+    public static TaskbarEdge Place(Window window)
     {
         var hwnd = new WindowInteropHelper(window).EnsureHandle();
 
@@ -31,28 +41,34 @@ internal static class PopupPositioner
         int m = (int)Math.Round(MarginDip * scale);
 
         int x, y;
+        TaskbarEdge edge;
         if (wa.Top > bounds.Top)                 // taskbar at top
         {
+            edge = TaskbarEdge.Top;
             y = wa.Top + m;
             x = Clamp(cursor.X - w / 2, wa.Left + m, wa.Right - w - m);
         }
         else if (wa.Right < bounds.Right)        // taskbar on the right
         {
+            edge = TaskbarEdge.Right;
             x = wa.Right - w - m;
             y = Clamp(cursor.Y - h / 2, wa.Top + m, wa.Bottom - h - m);
         }
         else if (wa.Left > bounds.Left)          // taskbar on the left
         {
+            edge = TaskbarEdge.Left;
             x = wa.Left + m;
             y = Clamp(cursor.Y - h / 2, wa.Top + m, wa.Bottom - h - m);
         }
         else                                     // bottom (default)
         {
+            edge = TaskbarEdge.Bottom;
             y = wa.Bottom - h - m;
             x = Clamp(cursor.X - w / 2, wa.Left + m, wa.Right - w - m);
         }
 
         NativeMethods.SetWindowPos(hwnd, NativeMethods.HWND_TOPMOST, x, y, 0, 0, NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOACTIVATE);
+        return edge;
     }
 
     private static int Clamp(int value, int min, int max)

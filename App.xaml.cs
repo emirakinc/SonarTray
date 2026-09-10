@@ -58,7 +58,7 @@ public partial class App : Application
         var mixer = new MixerViewModel(_connection, exit: () => Shutdown(0), openGg: GgLauncher.ShowGg);
         _popup = new PopupWindow(mixer);
         new WindowInteropHelper(_popup).EnsureHandle();
-        _tray = new TrayIconHost(_connection, _popup, GgLauncher.ShowGg);
+        _tray = new TrayIconHost(_connection, mixer, _popup, GgLauncher.ShowGg);
         _ = _connection.RunAsync(_cts.Token);
 
         // `--show`: open the panel immediately (development / screenshot aid)

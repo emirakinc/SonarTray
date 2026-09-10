@@ -11,15 +11,30 @@ public sealed class MixerViewModel : ObservableObject
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
 
+    /// <summary>
+    /// While the panel is closed the fast poll is off, so master volume would freeze at whatever
+    /// it was when the panel last closed - and that is exactly the value the tray icon draws.
+    /// This slower poll fetches only the volume document to keep the icon honest.
+    /// </summary>
+    private static readonly TimeSpan IdlePollInterval = TimeSpan.FromSeconds(8);
+
     private readonly SonarConnection _connection;
     private readonly Dispatcher _dispatcher;
     private readonly DispatcherTimer _poll;
+    private readonly DispatcherTimer _idlePoll;
     private CancellationTokenSource? _refreshCts;
+    private CancellationTokenSource? _idleCts;
     private ConnectionState _state;
     private bool _panelOpen;
     private bool _refreshing;
 
     public ObservableCollection<ChannelViewModel> Channels { get; }
+
+    /// <summary>The master row, rendered on its own card above the rest.</summary>
+    public ChannelViewModel Master { get; }
+
+    /// <summary>Everything except master, in <see cref="ChannelSpec.VisibleSpecs"/> order.</summary>
+    public IReadOnlyList<ChannelViewModel> SubChannels { get; }
 
     public ICommand RetryCommand { get; }
     public ICommand RefreshCommand { get; }
@@ -35,8 +50,16 @@ public sealed class MixerViewModel : ObservableObject
         Channels = new ObservableCollection<ChannelViewModel>(
             ChannelSpec.VisibleSpecs.Select(spec => new ChannelViewModel(spec, connection)));
 
+        // Never Channels[0]: VisibleSpecs filters on a flag, so the order is not guaranteed.
+        Master = Channels.First(c => c.Spec.Kind == ChannelKind.Master);
+        SubChannels = Channels.Where(c => c.Spec.Kind != ChannelKind.Master).ToList();
+
         _poll = new DispatcherTimer(DispatcherPriority.Background) { Interval = PollInterval };
         _poll.Tick += (_, _) => _ = RefreshAsync();
+
+        _idlePoll = new DispatcherTimer(DispatcherPriority.Background) { Interval = IdlePollInterval };
+        _idlePoll.Tick += (_, _) => _ = RefreshVolumesAsync();
+        _idlePoll.Start(); // the panel starts closed
 
         RetryCommand = new RelayCommand(() => _connection.RetryNow());
         RefreshCommand = new RelayCommand(() => _ = RefreshAsync());
@@ -76,8 +99,10 @@ public sealed class MixerViewModel : ObservableObject
     private void OnConnectionStateChanged(ConnectionState state)
     {
         ConnectionState = state;
-        if (_panelOpen && state is ConnectionState.Connected or ConnectionState.StreamMode)
-            _ = RefreshAsync();
+        if (state is not (ConnectionState.Connected or ConnectionState.StreamMode)) return;
+
+        if (_panelOpen) _ = RefreshAsync();
+        else _ = RefreshVolumesAsync(); // reconnected while hidden: refresh the tray icon now, not in 8s
     }
 
     // ---- startup toggle -------------------------------------------------
@@ -98,6 +123,8 @@ public sealed class MixerViewModel : ObservableObject
     public void OnPanelOpened()
     {
         _panelOpen = true;
+        _idlePoll.Stop();
+        _idleCts?.Cancel();
         OnPropertyChanged(nameof(StartWithWindows));
         if (IsOffline) _connection.RetryNow();
         _ = RefreshAsync();
@@ -109,6 +136,7 @@ public sealed class MixerViewModel : ObservableObject
         _panelOpen = false;
         _poll.Stop();
         _refreshCts?.Cancel();
+        _idlePoll.Start();
     }
 
     // ---- refresh --------------------------------------------------------
@@ -147,6 +175,34 @@ public sealed class MixerViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// The cheapest of the four reads, for the closed-panel poll. Devices and redirections cannot
+    /// have changed in any way the hidden UI would show, so they are not fetched.
+    /// </summary>
+    private async Task RefreshVolumesAsync()
+    {
+        var client = _connection.Client;
+        if (client is null || _panelOpen || _refreshing) return;
+
+        _idleCts?.Cancel();
+        _idleCts = new CancellationTokenSource();
+        var ct = _idleCts.Token;
+        try
+        {
+            var volumes = await client.GetVolumesAsync(ct);
+            foreach (var channel in Channels)
+                channel.ApplyVolumeFromServer(StateFor(volumes, channel.Spec));
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested)
+        {
+            // panel opened mid-poll; the full refresh supersedes this
+        }
+        catch (Exception ex)
+        {
+            _connection.ReportFailure(ex);
+        }
+    }
+
     private void Apply(VolumeSettingsDto? volumes, List<AudioDeviceDto>? devices, List<RedirectionDto>? redirections)
     {
         var render = new List<AudioDeviceItem>();
@@ -165,18 +221,19 @@ public sealed class MixerViewModel : ObservableObject
         {
             var spec = channel.Spec;
 
-            VolumeStateDto? state = spec.Kind == ChannelKind.Master
-                ? volumes?.Masters?.Classic
-                : volumes?.Devices?.FirstOrDefault(kv => kv.Key.Equals(spec.VolumeId, StringComparison.OrdinalIgnoreCase)).Value?.Classic;
-
             RedirectionDto? redirection = spec.RedirectionId is null
                 ? null
                 : redirections?.FirstOrDefault(r => r.Id.Equals(spec.RedirectionId, StringComparison.OrdinalIgnoreCase));
 
             var list = string.Equals(spec.DataFlow, "capture", StringComparison.OrdinalIgnoreCase) ? capture : render;
-            channel.ApplyFromServer(state, redirection?.DeviceId, redirection?.IsRunning ?? true, list);
+            channel.ApplyFromServer(StateFor(volumes, spec), redirection?.DeviceId, redirection?.IsRunning ?? true, list);
         }
     }
+
+    private static VolumeStateDto? StateFor(VolumeSettingsDto? volumes, ChannelSpec spec)
+        => spec.Kind == ChannelKind.Master
+            ? volumes?.Masters?.Classic
+            : volumes?.Devices?.FirstOrDefault(kv => kv.Key.Equals(spec.VolumeId, StringComparison.OrdinalIgnoreCase)).Value?.Classic;
 
     /// <summary>Real, active devices only; Sonar's own virtual endpoints are never valid targets.</summary>
     private static bool IsSelectable(AudioDeviceDto d)

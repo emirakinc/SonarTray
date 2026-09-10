@@ -2,9 +2,9 @@ using System.Windows.Controls;
 
 namespace SonarTray.Views;
 
-public partial class ChannelRow : UserControl
+public partial class MasterRow : UserControl
 {
-    public ChannelRow()
+    public MasterRow()
     {
         InitializeComponent();
         SliderInteraction.Attach(VolumeSlider);

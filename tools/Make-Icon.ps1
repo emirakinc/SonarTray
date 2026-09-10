@@ -1,5 +1,7 @@
 # Generates Assets\tray.ico (16/20/24/32/48/256 px, PNG-compressed entries) with the same
-# three-bar mixer glyph the app draws at runtime. Run from the project root:
+# three-bar mixer glyph the app draws at runtime, in its "connected, full volume" variant.
+# The integer geometry below MIRRORS Tray\TrayIconFactory.cs - change both together.
+# Run from the project root:
 #   powershell -ExecutionPolicy Bypass -File tools\Make-Icon.ps1
 param(
     [string]$Out = (Join-Path $PSScriptRoot "..\Assets\tray.ico"),
@@ -9,6 +11,7 @@ Add-Type -AssemblyName System.Drawing
 
 $color = [System.Drawing.ColorTranslator]::FromHtml($Hex)
 $sizes = 16, 20, 24, 32, 48, 256
+$profile = 0.55, 1.0, 0.75
 
 function New-GlyphPng([int]$size) {
     $bmp = New-Object System.Drawing.Bitmap $size, $size, ([System.Drawing.Imaging.PixelFormat]::Format32bppArgb)
@@ -16,15 +19,20 @@ function New-GlyphPng([int]$size) {
     $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
     $g.Clear([System.Drawing.Color]::Transparent)
     $brush = New-Object System.Drawing.SolidBrush $color
-    $u = $size / 16.0
-    $barW = 3.2 * $u; $gap = 1.6 * $u
-    $heights = 0.55, 0.9, 0.7
+
+    $pad = [Math]::Max(1, [int][Math]::Round($size * 0.125))
+    $usableW = $size - 2 * $pad
+    $usableH = $size - 2 * $pad
+    $gap = [Math]::Max(1, [int][Math]::Round($size * 0.09))
+    $barW = [Math]::Max(2, [int](($usableW - 2 * $gap) / 3))
     $totalW = 3 * $barW + 2 * $gap
-    $x0 = ($size - $totalW) / 2.0
+    $x0 = $pad + [int](($usableW - $totalW) / 2)
+    $baseline = $size - $pad
+
     for ($i = 0; $i -lt 3; $i++) {
-        $h = $size * $heights[$i]
+        $h = [Math]::Max($barW, [int][Math]::Round($usableH * $profile[$i]))
         $x = $x0 + $i * ($barW + $gap)
-        $y = ($size - $h) / 2.0
+        $y = $baseline - $h
         $r = $barW / 2.0; $d = $r * 2
         $path = New-Object System.Drawing.Drawing2D.GraphicsPath
         $path.AddArc($x, $y, $d, $d, 180, 90)
@@ -35,6 +43,7 @@ function New-GlyphPng([int]$size) {
         $g.FillPath($brush, $path)
         $path.Dispose()
     }
+
     $ms = New-Object System.IO.MemoryStream
     $bmp.Save($ms, [System.Drawing.Imaging.ImageFormat]::Png)
     $g.Dispose(); $bmp.Dispose(); $brush.Dispose()

@@ -2,7 +2,9 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:conv="clr-namespace:SonarTray.Converters">
 
-    <!-- ===== Colors ===== -->
+    <!-- ===== Colors =====
+         Opaque palette: the window fallback, plus the ComboBox popup and ToolTip, which
+         live in their own HWNDs and therefore never get the DWM backdrop. -->
     <Color x:Key="BgColor">#0F1626</Color>
     <Color x:Key="SurfaceColor">#1B2337</Color>
     <Color x:Key="SurfaceHoverColor">#242E46</Color>
@@ -26,7 +28,20 @@
     <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}"/>
     <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}"/>
     <SolidColorBrush x:Key="WarnBrush" Color="{StaticResource WarnColor}"/>
-    <SolidColorBrush x:Key="OverlayBrush" Color="#D90F1626"/>
+
+    <!-- Translucent palette: reads correctly both over the acrylic backdrop and over the
+         solid #0F1626 fallback, so a single set of styles covers both paths. -->
+    <SolidColorBrush x:Key="BgTintBrush" Color="#B30F1626"/>
+    <SolidColorBrush x:Key="CardBrush" Color="#0AFFFFFF"/>
+    <SolidColorBrush x:Key="CardHoverBrush" Color="#16FFFFFF"/>
+    <SolidColorBrush x:Key="GlassLineBrush" Color="#1FFFFFFF"/>
+    <SolidColorBrush x:Key="OverlayBrush" Color="#E00F1626"/>
+
+    <SolidColorBrush x:Key="SuccessDimBrush" Color="#2622C55E"/>
+    <SolidColorBrush x:Key="WarnDimBrush" Color="#26F59E0B"/>
+    <SolidColorBrush x:Key="MutedDimBrush" Color="#268A93A6"/>
+    <SolidColorBrush x:Key="DangerDimBrush" Color="#26EF4444"/>
+    <SolidColorBrush x:Key="ThumbRingBrush" Color="#66000000"/>
 
     <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
 
@@ -41,28 +56,58 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="RepeatButton">
-                    <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}"/>
+                    <Border Height="6" CornerRadius="3" Background="{TemplateBinding Background}"/>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
     </Style>
 
+    <!-- The Thumb keeps a constant 18x18 footprint so Track geometry never shifts;
+         only the inner knob grows, which is one trivial layout pass. -->
     <Style x:Key="SliderThumb" TargetType="Thumb">
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="Focusable" Value="False"/>
-        <Setter Property="Width" Value="14"/>
-        <Setter Property="Height" Value="14"/>
+        <Setter Property="Width" Value="18"/>
+        <Setter Property="Height" Value="18"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Thumb">
-                    <Ellipse x:Name="Knob" Fill="{TemplateBinding Background}" Stroke="{StaticResource BgBrush}" StrokeThickness="2"/>
+                    <Grid Background="Transparent">
+                        <Ellipse x:Name="Knob" Width="14" Height="14"
+                                 HorizontalAlignment="Center" VerticalAlignment="Center"
+                                 Fill="{TemplateBinding Background}"
+                                 Stroke="{StaticResource ThumbRingBrush}" StrokeThickness="2"/>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Knob" Property="StrokeThickness" Value="1"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Width" To="17" Duration="0:0:0.10"/>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Height" To="17" Duration="0:0:0.10"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Width" To="14" Duration="0:0:0.10"/>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Height" To="14" Duration="0:0:0.10"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsDragging" Value="True">
                             <Setter TargetName="Knob" Property="StrokeThickness" Value="0"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Width" To="18" Duration="0:0:0.08"/>
+                                        <DoubleAnimation Storyboard.TargetName="Knob" Storyboard.TargetProperty="Height" To="18" Duration="0:0:0.08"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -80,7 +125,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Slider">
-                    <Grid Background="Transparent" MinHeight="24">
+                    <Grid Background="Transparent" MinHeight="26">
                         <Track x:Name="PART_Track" VerticalAlignment="Center">
                             <Track.DecreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource SliderTrackButton}" Command="Slider.DecreaseLarge"
@@ -88,7 +133,7 @@
                             </Track.DecreaseRepeatButton>
                             <Track.IncreaseRepeatButton>
                                 <RepeatButton Style="{StaticResource SliderTrackButton}" Command="Slider.IncreaseLarge"
-                                              Background="{StaticResource LineBrush}"/>
+                                              Background="{StaticResource GlassLineBrush}"/>
                             </Track.IncreaseRepeatButton>
                             <Track.Thumb>
                                 <Thumb Style="{StaticResource SliderThumb}" Background="{TemplateBinding Foreground}"/>
@@ -111,19 +156,56 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Bd" CornerRadius="6" Background="Transparent">
+                    <Grid Background="Transparent">
+                        <Border x:Name="Hover" CornerRadius="8" Background="{StaticResource CardHoverBrush}" Opacity="0"/>
+                        <Border x:Name="Checked" CornerRadius="8" Background="{StaticResource DangerDimBrush}" Opacity="0"/>
                         <TextBlock x:Name="Glyph" Text="&#xE767;" FontFamily="{StaticResource IconFont}" FontSize="14"
-                                   Foreground="{TemplateBinding Foreground}"
-                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
+                                   Foreground="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock.RenderTransform>
+                                <ScaleTransform ScaleX="1" ScaleY="1"/>
+                            </TextBlock.RenderTransform>
+                        </TextBlock>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
                             <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource TextBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Glyph" Property="Text" Value="&#xE74F;"/>
                             <Setter TargetName="Glyph" Property="Foreground" Value="{StaticResource DangerBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Checked" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glyph" Duration="0:0:0.18" From="0.8" To="1"
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleX)"/>
+                                        <DoubleAnimation Storyboard.TargetName="Glyph" Duration="0:0:0.18" From="0.8" To="1"
+                                                         Storyboard.TargetProperty="(UIElement.RenderTransform).(ScaleTransform.ScaleY)"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Checked" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -140,15 +222,30 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ToggleButton">
-                    <Border x:Name="Bd" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
-                            BorderThickness="1" CornerRadius="6">
+                    <Grid>
+                        <Border x:Name="Bd" Background="{StaticResource CardHoverBrush}"
+                                BorderBrush="{StaticResource GlassLineBrush}" BorderThickness="1" CornerRadius="7"/>
+                        <Border x:Name="Hover" Background="{StaticResource CardHoverBrush}" CornerRadius="7" Opacity="0"/>
                         <TextBlock Text="&#xE70D;" FontFamily="{StaticResource IconFont}" FontSize="10"
                                    Foreground="{StaticResource MutedTextBrush}"
                                    HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,9,0"/>
-                    </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
@@ -167,7 +264,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ComboBoxItem">
-                    <Border x:Name="Bd" Background="Transparent" CornerRadius="4" Margin="3,1" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Bd" Background="Transparent" CornerRadius="5" Margin="3,1" Padding="{TemplateBinding Padding}">
                         <ContentPresenter TextBlock.Foreground="{TemplateBinding Foreground}" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
@@ -202,10 +299,11 @@
                                           ContentStringFormat="{TemplateBinding SelectionBoxItemStringFormat}"
                                           TextBlock.Foreground="{TemplateBinding Foreground}"
                                           Margin="10,0,26,0" VerticalAlignment="Center"/>
+                        <!-- Its own HWND, so it never gets the backdrop: deliberately opaque. -->
                         <Popup x:Name="PART_Popup" IsOpen="{TemplateBinding IsDropDownOpen}" Placement="Bottom"
                                AllowsTransparency="True" PopupAnimation="Fade" StaysOpen="False" Focusable="False">
                             <Border Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource LineBrush}"
-                                    BorderThickness="1" CornerRadius="6" Margin="0,2,0,0" SnapsToDevicePixels="True"
+                                    BorderThickness="1" CornerRadius="7" Margin="0,3,0,0" SnapsToDevicePixels="True"
                                     MinWidth="{TemplateBinding ActualWidth}" MaxHeight="{TemplateBinding MaxDropDownHeight}">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                                     <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Contained"/>
@@ -233,8 +331,8 @@
             <Setter.Value>
                 <ControlTemplate TargetType="CheckBox">
                     <StackPanel Orientation="Horizontal" Background="Transparent">
-                        <Border x:Name="Box" Width="16" Height="16" CornerRadius="4" BorderThickness="1"
-                                BorderBrush="{StaticResource LineBrush}" Background="{StaticResource SurfaceBrush}"
+                        <Border x:Name="Box" Width="16" Height="16" CornerRadius="5" BorderThickness="1"
+                                BorderBrush="{StaticResource GlassLineBrush}" Background="{StaticResource CardHoverBrush}"
                                 VerticalAlignment="Center">
                             <TextBlock x:Name="Check" Text="&#xE73E;" FontFamily="{StaticResource IconFont}" FontSize="10"
                                        Foreground="{StaticResource TextBrush}" Visibility="Collapsed"
@@ -268,17 +366,33 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" CornerRadius="6" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
-                                          TextBlock.Foreground="{TemplateBinding Foreground}"/>
-                    </Border>
+                    <Grid Background="Transparent">
+                        <Border x:Name="Hover" CornerRadius="7" Background="{StaticResource CardHoverBrush}" Opacity="0"/>
+                        <Border Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
+                                              TextBlock.Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </Grid>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource SurfaceHoverBrush}"/>
                             <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Hover" Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
+                            <Setter TargetName="Hover" Property="Opacity" Value="0.55"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -298,20 +412,33 @@
         <Setter Property="OverridesDefaultStyle" Value="True"/>
         <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
         <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
-        <Setter Property="Padding" Value="14,6"/>
+        <Setter Property="Padding" Value="16,7"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="Focusable" Value="False"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Bd" CornerRadius="6" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
+                    <Border x:Name="Bd" CornerRadius="7" Background="{TemplateBinding Background}" Padding="{TemplateBinding Padding}">
                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"
                                           TextBlock.Foreground="{TemplateBinding Foreground}"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Bd" Property="Opacity" Value="0.85"/>
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="0.85" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetName="Bd" Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.12"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
                         </Trigger>
                         <Trigger Property="IsPressed" Value="True">
                             <Setter TargetName="Bd" Property="Opacity" Value="0.7"/>
