@@ -2,6 +2,8 @@ using System.Globalization;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Interop;
+using SonarTray.Hotkeys;
+using SonarTray.Models;
 using SonarTray.Services;
 using SonarTray.Tray;
 using SonarTray.ViewModels;
@@ -19,6 +21,10 @@ public partial class App : Application
     private SonarConnection? _connection;
     private PopupWindow? _popup;
     private TrayIconHost? _tray;
+    private MixerViewModel? _mixer;
+    private HotkeyManager? _hotkeys;
+    private HotkeyConfig? _hotkeyConfig;
+    private OsdWindow? _osd;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -55,10 +61,14 @@ public partial class App : Application
 
         _cts = new CancellationTokenSource();
         _connection = new SonarConnection();
-        var mixer = new MixerViewModel(_connection, exit: () => Shutdown(0), openGg: GgLauncher.ShowGg);
-        _popup = new PopupWindow(mixer);
+        _mixer = new MixerViewModel(_connection, exit: () => Shutdown(0), openGg: GgLauncher.ShowGg);
+        _popup = new PopupWindow(_mixer);
         new WindowInteropHelper(_popup).EnsureHandle();
-        _tray = new TrayIconHost(_connection, mixer, _popup, GgLauncher.ShowGg);
+        _tray = new TrayIconHost(_connection, _mixer, _popup, GgLauncher.ShowGg);
+        _osd = new OsdWindow();
+        new WindowInteropHelper(_osd).EnsureHandle();
+        _hotkeyConfig = HotkeyConfig.Load();
+        _hotkeys = new HotkeyManager(_hotkeyConfig, OnHotkey);
         _ = _connection.RunAsync(_cts.Token);
 
         // `--show`: open the panel immediately (development / screenshot aid)
@@ -70,7 +80,13 @@ public partial class App : Application
     {
         Log.Info("SonarTray exiting");
         _cts?.Cancel();
+        _hotkeys?.Dispose();
         _tray?.Dispose();
+        if (_osd is not null)
+        {
+            _osd.AllowClose = true;
+            _osd.Close();
+        }
         if (_popup is not null)
         {
             _popup.AllowClose = true;
@@ -83,6 +99,53 @@ public partial class App : Application
         }
         _mutex?.Dispose();
         base.OnExit(e);
+    }
+
+    /// <summary>
+    /// Hotkeys arrive on the UI thread (the message-only window is created here), so the view
+    /// models can be touched directly. Audio actions are ignored while disconnected: the local
+    /// value would change and then be overwritten by the next poll.
+    /// </summary>
+    private void OnHotkey(HotkeyAction action)
+    {
+        if (_mixer is null) return;
+        Log.Verbose($"Hotkey fired: {action}");
+
+        if (action == HotkeyAction.TogglePanel)
+        {
+            _popup?.Toggle();
+            return;
+        }
+
+        if (!_mixer.IsConnected)
+        {
+            Log.Verbose($"Hotkey {action} ignored: not connected");
+            return;
+        }
+
+        switch (action)
+        {
+            case HotkeyAction.MicMute:
+                if (_mixer.ChannelOf(ChannelKind.Mic) is not { } mic) return;
+                mic.IsMuted = !mic.IsMuted;
+                _osd?.Show(mic);
+                break;
+
+            case HotkeyAction.MasterMute:
+                _mixer.Master.IsMuted = !_mixer.Master.IsMuted;
+                _osd?.Show(_mixer.Master);
+                break;
+
+            case HotkeyAction.MasterUp:
+            case HotkeyAction.MasterDown:
+                double raw = _hotkeyConfig?.VolumeStep ?? 0.05;
+                double step = action == HotkeyAction.MasterUp ? raw : -raw;
+                var master = _mixer.Master;
+                master.Volume = Math.Clamp(master.Volume + step, 0.0, 1.0);
+                master.FlushVolume(); // no reason to sit through the drag debounce for a keypress
+                _osd?.Show(master);
+                break;
+        }
     }
 
     /// <summary>

@@ -36,6 +36,10 @@ public sealed class MixerViewModel : ObservableObject
     /// <summary>Everything except master, in <see cref="ChannelSpec.VisibleSpecs"/> order.</summary>
     public IReadOnlyList<ChannelViewModel> SubChannels { get; }
 
+    /// <summary>Null when the kind is not among the visible specs.</summary>
+    public ChannelViewModel? ChannelOf(ChannelKind kind)
+        => Channels.FirstOrDefault(c => c.Spec.Kind == kind);
+
     public ICommand RetryCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ExitCommand { get; }

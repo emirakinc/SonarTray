@@ -40,6 +40,41 @@ internal static class NativeMethods
     public const int DWMSBT_TRANSIENTWINDOW = 3; // Acrylic
     public const int DWMSBT_TABBEDWINDOW = 4;    // Mica Alt
 
+    // --- extended window styles ---------------------------------------------
+    public const int GWL_EXSTYLE = -20;
+    /// <summary>Click-through: the OSD must never intercept a click meant for the game.</summary>
+    public const int WS_EX_TRANSPARENT = 0x00000020;
+    public const int WS_EX_TOOLWINDOW = 0x00000080;
+    /// <summary>Showing the OSD must not pull focus away from whatever is in front.</summary>
+    public const int WS_EX_NOACTIVATE = 0x08000000;
+
+    [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW", SetLastError = true)]
+    public static extern IntPtr GetWindowLongPtr(IntPtr hWnd, int nIndex);
+
+    [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
+    public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    // --- global hotkeys -----------------------------------------------------
+    /// <summary>Parent value that makes CreateWindow produce a message-only window.</summary>
+    public static readonly IntPtr HWND_MESSAGE = new(-3);
+
+    public const int WM_HOTKEY = 0x0312;
+
+    public const uint MOD_ALT = 0x0001;
+    public const uint MOD_CONTROL = 0x0002;
+    public const uint MOD_SHIFT = 0x0004;
+    public const uint MOD_WIN = 0x0008;
+    /// <summary>Suppresses auto-repeat while the combination is held.</summary>
+    public const uint MOD_NOREPEAT = 0x4000;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnregisterHotKey(IntPtr hWnd, int id);
+
     [StructLayout(LayoutKind.Sequential)]
     public struct POINT
     {
