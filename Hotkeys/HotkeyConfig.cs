@@ -51,6 +51,27 @@ public sealed class HotkeyConfig
         }
     }
 
+    public string Get(HotkeyAction action) => action switch
+    {
+        HotkeyAction.MicMute => MicMute,
+        HotkeyAction.MasterMute => MasterMute,
+        HotkeyAction.MasterUp => MasterUp,
+        HotkeyAction.MasterDown => MasterDown,
+        _ => TogglePanel,
+    };
+
+    public void Set(HotkeyAction action, string gesture)
+    {
+        switch (action)
+        {
+            case HotkeyAction.MicMute: MicMute = gesture; break;
+            case HotkeyAction.MasterMute: MasterMute = gesture; break;
+            case HotkeyAction.MasterUp: MasterUp = gesture; break;
+            case HotkeyAction.MasterDown: MasterDown = gesture; break;
+            case HotkeyAction.TogglePanel: TogglePanel = gesture; break;
+        }
+    }
+
     public static string FilePath { get; } = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SonarTray", "hotkeys.json");
 

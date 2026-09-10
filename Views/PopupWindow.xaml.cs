@@ -55,14 +55,7 @@ public partial class PopupWindow : Window
         {
             if (Mouse.Captured is null) HidePopup();
         }));
-        PreviewKeyDown += (_, e) =>
-        {
-            if (e.Key == Key.Escape)
-            {
-                HidePopup();
-                e.Handled = true;
-            }
-        };
+        PreviewKeyDown += OnPreviewKeyDown;
         IsVisibleChanged += (_, e) =>
         {
             if (e.NewValue is true) _viewModel.OnPanelOpened();
@@ -79,6 +72,39 @@ public partial class PopupWindow : Window
             HidePopup();
         };
     }
+
+    /// <summary>
+    /// Every control in the panel is Focusable=False, so the window sees the keystrokes. While a
+    /// hotkey row is capturing, the press belongs to it rather than to the panel; Escape then backs
+    /// out one level at a time - capture, then the settings page, then the popup.
+    /// </summary>
+    private void OnPreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        var hotkeys = _viewModel.Hotkeys;
+
+        if (hotkeys.IsCapturing)
+        {
+            e.Handled = true;
+            // Alt-combinations arrive as Key.System with the real key in SystemKey.
+            var key = e.Key == Key.System ? e.SystemKey : e.Key;
+            if (IsModifierKey(key)) return; // wait for the non-modifier half of the chord
+            hotkeys.Capture(Keyboard.Modifiers, key);
+            return;
+        }
+
+        if (e.Key != Key.Escape) return;
+        e.Handled = true;
+
+        if (_viewModel.IsSettingsOpen) _viewModel.IsSettingsOpen = false;
+        else HidePopup();
+    }
+
+    private static bool IsModifierKey(Key key) => key
+        is Key.LeftCtrl or Key.RightCtrl
+        or Key.LeftShift or Key.RightShift
+        or Key.LeftAlt or Key.RightAlt
+        or Key.LWin or Key.RWin
+        or Key.System;
 
     public void Toggle()
     {

@@ -61,14 +61,18 @@ public partial class App : Application
 
         _cts = new CancellationTokenSource();
         _connection = new SonarConnection();
-        _mixer = new MixerViewModel(_connection, exit: () => Shutdown(0), openGg: GgLauncher.ShowGg);
+        // Hotkeys come up before the view models so the settings page can report, from the start,
+        // which combinations the system actually accepted.
+        _hotkeyConfig = HotkeyConfig.Load();
+        _hotkeys = new HotkeyManager(_hotkeyConfig, OnHotkey);
+
+        _mixer = new MixerViewModel(_connection, new HotkeySettingsViewModel(_hotkeyConfig, _hotkeys),
+                                    exit: () => Shutdown(0), openGg: GgLauncher.ShowGg);
         _popup = new PopupWindow(_mixer);
         new WindowInteropHelper(_popup).EnsureHandle();
         _tray = new TrayIconHost(_connection, _mixer, _popup, GgLauncher.ShowGg);
         _osd = new OsdWindow();
         new WindowInteropHelper(_osd).EnsureHandle();
-        _hotkeyConfig = HotkeyConfig.Load();
-        _hotkeys = new HotkeyManager(_hotkeyConfig, OnHotkey);
         _ = _connection.RunAsync(_cts.Token);
 
         // `--show`: open the panel immediately (development / screenshot aid)

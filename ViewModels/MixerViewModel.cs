@@ -27,6 +27,7 @@ public sealed class MixerViewModel : ObservableObject
     private ConnectionState _state;
     private bool _panelOpen;
     private bool _refreshing;
+    private bool _isSettingsOpen;
 
     public ObservableCollection<ChannelViewModel> Channels { get; }
 
@@ -40,14 +41,33 @@ public sealed class MixerViewModel : ObservableObject
     public ChannelViewModel? ChannelOf(ChannelKind kind)
         => Channels.FirstOrDefault(c => c.Spec.Kind == kind);
 
+    /// <summary>The hotkey page, shown in place of the mixer rows.</summary>
+    public HotkeySettingsViewModel Hotkeys { get; }
+
+    public bool IsSettingsOpen
+    {
+        get => _isSettingsOpen;
+        set
+        {
+            if (!SetProperty(ref _isSettingsOpen, value)) return;
+            OnPropertyChanged(nameof(IsMixerVisible));
+            if (!value) Hotkeys.CancelCapture();
+        }
+    }
+
+    /// <summary>Rows and their offline/stream overlays hide while the settings page is up.</summary>
+    public bool IsMixerVisible => !_isSettingsOpen;
+
+    public ICommand ToggleSettingsCommand { get; }
     public ICommand RetryCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ExitCommand { get; }
     public ICommand OpenGgCommand { get; }
 
-    public MixerViewModel(SonarConnection connection, Action exit, Action openGg)
+    public MixerViewModel(SonarConnection connection, HotkeySettingsViewModel hotkeys, Action exit, Action openGg)
     {
         _connection = connection;
+        Hotkeys = hotkeys;
         _dispatcher = Dispatcher.CurrentDispatcher;
         _state = connection.State;
 
@@ -65,6 +85,7 @@ public sealed class MixerViewModel : ObservableObject
         _idlePoll.Tick += (_, _) => _ = RefreshVolumesAsync();
         _idlePoll.Start(); // the panel starts closed
 
+        ToggleSettingsCommand = new RelayCommand(() => IsSettingsOpen = !IsSettingsOpen);
         RetryCommand = new RelayCommand(() => _connection.RetryNow());
         RefreshCommand = new RelayCommand(() => _ = RefreshAsync());
         ExitCommand = new RelayCommand(exit);
@@ -138,6 +159,7 @@ public sealed class MixerViewModel : ObservableObject
     public void OnPanelClosed()
     {
         _panelOpen = false;
+        IsSettingsOpen = false; // always reopen on the mixer
         _poll.Stop();
         _refreshCts?.Cancel();
         _idlePoll.Start();

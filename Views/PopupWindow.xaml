@@ -30,6 +30,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
 
                     <!-- Same three-bar mark the tray icon draws. -->
@@ -95,9 +96,11 @@
                         </StackPanel>
                     </Border>
 
-                    <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE8A7;" AutomationProperties.Name="GG"
-                            ToolTip="SteelSeries GG'yi aç" Command="{Binding OpenGgCommand}"/>
-                    <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE72C;" AutomationProperties.Name="Yenile"
+                    <Button Grid.Column="3" Style="{StaticResource IconButton}" Content="&#xE713;" AutomationProperties.Name="Kısayollar"
+                            ToolTip="Kısayollar" Command="{Binding ToggleSettingsCommand}"/>
+                    <Button Grid.Column="4" Style="{StaticResource IconButton}" Content="&#xE8A7;" AutomationProperties.Name="GG"
+                            ToolTip="SteelSeries GG'yi aç" Command="{Binding OpenGgCommand}" Margin="4,0,0,0"/>
+                    <Button Grid.Column="5" Style="{StaticResource IconButton}" Content="&#xE72C;" AutomationProperties.Name="Yenile"
                             ToolTip="Yenile" Command="{Binding RefreshCommand}" Margin="4,0,0,0"/>
                 </Grid>
 
@@ -113,6 +116,8 @@
 
                 <!-- Rows + overlays -->
                 <Grid>
+                  <!-- The mixer and its overlays travel together: the settings page replaces both. -->
+                  <Grid Visibility="{Binding IsMixerVisible, Converter={StaticResource BoolToVis}}">
                     <StackPanel IsEnabled="{Binding IsConnected}">
                         <views:MasterRow DataContext="{Binding Master}" Margin="0,0,0,12"/>
                         <ItemsControl ItemsSource="{Binding SubChannels}" Focusable="False">
@@ -155,6 +160,12 @@
                                        HorizontalAlignment="Center" Margin="0,3,0,0"/>
                         </StackPanel>
                     </Border>
+                  </Grid>
+
+                  <views:HotkeySettingsView DataContext="{Binding Hotkeys}"
+                                            Visibility="{Binding DataContext.IsSettingsOpen,
+                                                         RelativeSource={RelativeSource AncestorType=Window},
+                                                         Converter={StaticResource BoolToVis}}"/>
                 </Grid>
             </DockPanel>
         </Grid>
