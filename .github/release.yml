@@ -1,0 +1,9 @@
+# Release notlarındaki "otomatik üretilen" bölümün gruplanması (gh release --generate-notes)
+changelog:
+  categories:
+    - title: Yenilikler
+      labels: ["feature", "enhancement"]
+    - title: Düzeltmeler
+      labels: ["bug", "fix"]
+    - title: Diğer değişiklikler
+      labels: ["*"]

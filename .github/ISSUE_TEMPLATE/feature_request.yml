@@ -1,0 +1,17 @@
+name: Öneri
+description: Yeni bir özellik ya da iyileştirme fikri
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Hangi ihtiyaç?
+      description: Şu an neyi yapamıyorsun ya da ne rahatsız ediyor?
+    validations:
+      required: true
+
+  - type: textarea
+    id: idea
+    attributes:
+      label: Aklındaki çözüm
+      description: Panelde nerede dururdu, nasıl davranırdı?

@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Soru / sohbet
+    url: https://github.com/emirakinc/SonarTray/discussions
+    about: Hata ya da öneri değilse (kullanım sorusu, fikir tartışması) Discussions daha uygun.

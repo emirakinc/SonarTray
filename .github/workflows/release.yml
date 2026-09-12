@@ -1,0 +1,109 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Yayınlanacak etiket (repoda önceden oluşturulmuş olmalı, ör. v0.1.0)"
+        required: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Sürümü etiketten çöz
+        id: ver
+        shell: pwsh
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          $tag = $env:TAG
+          if ($tag -notmatch '^v\d+\.\d+\.\d+(-[0-9A-Za-z.]+)?$') {
+            throw "Etiket biçimi vX.Y.Z ya da vX.Y.Z-onek olmalı, gelen: $tag"
+          }
+          $version = $tag.Substring(1)          # 0.1.0 / 0.2.0-beta.1
+          $core    = ($version -split '-')[0]   # AssemblyVersion sayısal olmak zorunda
+          $pre     = if ($version -match '-') { 'true' } else { 'false' }
+          "tag=$tag"         >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "core=$core"       >> $env:GITHUB_OUTPUT
+          "prerelease=$pre"  >> $env:GITHUB_OUTPUT
+
+      - name: Publish — framework-dependent (.NET 8 Desktop Runtime gerekir)
+        run: >
+          dotnet publish SonarTray.csproj -c Release -r win-x64
+          --self-contained false
+          -p:PublishSingleFile=true
+          -p:Version=${{ steps.ver.outputs.core }}
+          -p:InformationalVersion=${{ steps.ver.outputs.version }}
+          -o publish/framework-dependent
+
+      - name: Publish — self-contained (runtime gerektirmez)
+        run: >
+          dotnet publish SonarTray.csproj -c Release -r win-x64
+          --self-contained true
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:Version=${{ steps.ver.outputs.core }}
+          -p:InformationalVersion=${{ steps.ver.outputs.version }}
+          -o publish/self-contained
+
+      - name: Paketle ve sağlama toplamlarını üret
+        id: pack
+        shell: pwsh
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          $tag = $env:TAG
+          New-Item -ItemType Directory -Path dist | Out-Null
+
+          $fd = "dist/SonarTray-$tag-win-x64.zip"
+          $sc = "dist/SonarTray-$tag-win-x64-self-contained.zip"
+          Compress-Archive -Path publish/framework-dependent/* -DestinationPath $fd
+          Compress-Archive -Path publish/self-contained/*      -DestinationPath $sc
+
+          Get-ChildItem dist -Filter *.zip |
+            ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } |
+            Set-Content dist/SHA256SUMS.txt -Encoding utf8
+
+          Get-ChildItem dist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
+
+      - name: Sürüm notlarını hazırla
+        shell: pwsh
+        env:
+          TAG: ${{ steps.ver.outputs.tag }}
+        run: |
+          (Get-Content .github/release-notes-template.md -Raw -Encoding utf8).Replace('{{TAG}}', $env:TAG) |
+            Set-Content release-notes.md -Encoding utf8
+
+      - name: GitHub Release oluştur
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ver.outputs.tag }}
+          PRERELEASE: ${{ steps.ver.outputs.prerelease }}
+        run: |
+          $ghArgs = @('release', 'create', $env:TAG,
+                    '--title', "SonarTray $env:TAG",
+                    '--notes-file', 'release-notes.md',
+                    '--generate-notes',
+                    '--verify-tag')
+          if ($env:PRERELEASE -eq 'true') { $ghArgs += '--prerelease' }
+          $ghArgs += (Get-ChildItem dist | ForEach-Object { $_.FullName })
+          gh @ghArgs

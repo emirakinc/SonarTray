@@ -5,3 +5,5 @@ publish/
 *.suo
 .vs/
 *.log
+dist/
+release-notes.md
