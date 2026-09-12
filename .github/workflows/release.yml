@@ -17,12 +17,12 @@ jobs:
     runs-on: windows-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
           fetch-depth: 0
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: "8.0.x"
 
@@ -78,9 +78,13 @@ jobs:
           Compress-Archive -Path publish/framework-dependent/* -DestinationPath $fd
           Compress-Archive -Path publish/self-contained/*      -DestinationPath $sc
 
-          Get-ChildItem dist -Filter *.zip |
-            ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name } |
-            Set-Content dist/SHA256SUMS.txt -Encoding utf8
+          # sha256sum -c ile dogrulanabilmesi icin LF satir sonu ve BOM'suz UTF-8
+          $sums = Get-ChildItem dist -Filter *.zip |
+            ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.Name }
+          [IO.File]::WriteAllText(
+            (Join-Path $PWD 'dist/SHA256SUMS.txt'),
+            ($sums -join "`n") + "`n",
+            (New-Object Text.UTF8Encoding $false))
 
           Get-ChildItem dist | ForEach-Object { "{0}  {1:N1} MB" -f $_.Name, ($_.Length / 1MB) }
 
