@@ -5,7 +5,7 @@ Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/), sürümleme
 
 ## [Yayımlanmadı]
 
-## [0.1.0] — 2026-09-12
+## [0.1.0] — 2026-09-13
 
 İlk sürüm.
 
