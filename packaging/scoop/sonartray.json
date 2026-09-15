@@ -1,0 +1,39 @@
+{
+    "version": "0.1.0",
+    "description": "Control the SteelSeries Sonar mixer from the notification area.",
+    "homepage": "https://github.com/emirakinc/SonarTray",
+    "license": "MIT",
+    "architecture": {
+        "64bit": {
+            "url": "https://github.com/emirakinc/SonarTray/releases/download/v0.1.0/SonarTray-v0.1.0-win-x64.zip",
+            "hash": "eb3e30d8b3969431a01813ba9ef41dde310f04d833a93dcef1771effff7e863c"
+        }
+    },
+    "shortcuts": [
+        [
+            "SonarTray.exe",
+            "SonarTray"
+        ]
+    ],
+    "notes": [
+        "SonarTray lives in the notification area - there is no main window.",
+        "This is the framework-dependent build and needs the .NET 8 Desktop Runtime:",
+        "  scoop install extras/dotnet-desktop-runtime",
+        "Settings and logs are kept in %LOCALAPPDATA%\\SonarTray.",
+        "SteelSeries GG with Sonar enabled must be running."
+    ],
+    "persist": [],
+    "checkver": {
+        "github": "https://github.com/emirakinc/SonarTray"
+    },
+    "autoupdate": {
+        "architecture": {
+            "64bit": {
+                "url": "https://github.com/emirakinc/SonarTray/releases/download/v$version/SonarTray-v$version-win-x64.zip"
+            }
+        },
+        "hash": {
+            "url": "https://github.com/emirakinc/SonarTray/releases/download/v$version/SHA256SUMS.txt"
+        }
+    }
+}

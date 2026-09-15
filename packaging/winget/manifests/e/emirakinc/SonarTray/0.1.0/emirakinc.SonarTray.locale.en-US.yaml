@@ -1,0 +1,37 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.defaultLocale.1.6.0.schema.json
+PackageIdentifier: emirakinc.SonarTray
+PackageVersion: 0.1.0
+PackageLocale: en-US
+Publisher: Emir Akıncı
+PublisherUrl: https://github.com/emirakinc
+PublisherSupportUrl: https://github.com/emirakinc/SonarTray/issues
+Author: Emir Akıncı
+PackageName: SonarTray
+PackageUrl: https://github.com/emirakinc/SonarTray
+License: MIT
+LicenseUrl: https://github.com/emirakinc/SonarTray/blob/master/LICENSE
+Copyright: Copyright (c) Emir Akıncı
+ShortDescription: Control the SteelSeries Sonar mixer from the notification area.
+Description: |-
+  A small tray application for the SteelSeries Sonar mixer. Right-click the tray icon for a
+  compact mixer with volume, mute and output/input device selection for the Master, Game, Chat,
+  Media and Microphone channels; left-click to bring up SteelSeries GG. Global shortcuts let you
+  mute the microphone or change the master volume without leaving a game, and the tray icon is
+  drawn from the current master volume.
+
+  Talks to Sonar's local REST API only; it is not an official SteelSeries product.
+Moniker: sonartray
+Tags:
+  - audio
+  - mixer
+  - steelseries
+  - sonar
+  - tray
+  - volume
+  - hotkeys
+ReleaseNotesUrl: https://github.com/emirakinc/SonarTray/releases/tag/v0.1.0
+Documentations:
+  - DocumentLabel: README
+    DocumentUrl: https://github.com/emirakinc/SonarTray/blob/master/README.md
+ManifestType: defaultLocale
+ManifestVersion: 1.6.0

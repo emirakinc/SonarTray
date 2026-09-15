@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+PackageIdentifier: emirakinc.SonarTray
+PackageVersion: 0.1.0
+MinimumOSVersion: 10.0.17763.0
+InstallerType: zip
+NestedInstallerType: portable
+NestedInstallerFiles:
+  - RelativeFilePath: SonarTray.exe
+    PortableCommandAlias: sonartray
+# The framework-dependent build is the small one; winget installs the runtime as a dependency
+# rather than shipping a second copy of it inside the package.
+Dependencies:
+  PackageDependencies:
+    - PackageIdentifier: Microsoft.DotNet.DesktopRuntime.8
+ReleaseDate: 2026-09-13
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/emirakinc/SonarTray/releases/download/v0.1.0/SonarTray-v0.1.0-win-x64.zip
+    InstallerSha256: EB3E30D8B3969431A01813BA9EF41DDE310F04D833A93DCEF1771EFFFF7E863C
+ManifestType: installer
+ManifestVersion: 1.6.0
