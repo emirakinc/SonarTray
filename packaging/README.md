@@ -12,13 +12,13 @@ Her sürümde: `version`, indirme adresi ve SHA256 güncellenmeli. Sağlama topl
 `manifests/e/emirakinc/SonarTray/<sürüm>/` altında üç YAML dosyası. Göndermeden önce doğrula:
 
 ```bash
-winget validate --manifest packaging/winget/manifests/e/emirakinc/SonarTray/0.1.0
+winget validate --manifest packaging/winget/manifests/e/emirakinc/SonarTray/0.2.0
 ```
 
 Yerelde kurup deneme (imzasız manifest olduğu için `--ignore-local-archive-malware-scan` gerekir):
 
 ```bash
-winget install --manifest packaging/winget/manifests/e/emirakinc/SonarTray/0.1.0
+winget install --manifest packaging/winget/manifests/e/emirakinc/SonarTray/0.2.0
 ```
 
 Gönderim: [microsoft/winget-pkgs](https://github.com/microsoft/winget-pkgs) deposuna PR.
@@ -29,7 +29,7 @@ içinde birleşir.
 Depo çok büyük olduğu için klonlamadan, API üzerinden göndermek pratiktir:
 
 ```bash
-V=0.1.0
+V=0.2.0
 BRANCH="emirakinc.SonarTray-$V"
 SHA=$(gh api repos/microsoft/winget-pkgs/git/ref/heads/master --jq '.object.sha')
 

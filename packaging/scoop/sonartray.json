@@ -1,12 +1,12 @@
 {
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "Control the SteelSeries Sonar mixer from the notification area.",
     "homepage": "https://github.com/emirakinc/SonarTray",
     "license": "MIT",
     "architecture": {
         "64bit": {
-            "url": "https://github.com/emirakinc/SonarTray/releases/download/v0.1.0/SonarTray-v0.1.0-win-x64.zip",
-            "hash": "eb3e30d8b3969431a01813ba9ef41dde310f04d833a93dcef1771effff7e863c"
+            "url": "https://github.com/emirakinc/SonarTray/releases/download/v0.2.0/SonarTray-v0.2.0-win-x64.zip",
+            "hash": "114491c390577ecec6f02f078cf8fcd3d3c2df5b29083a654c145c58d061a07b"
         }
     },
     "shortcuts": [

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
 PackageIdentifier: emirakinc.SonarTray
-PackageVersion: 0.1.0
+PackageVersion: 0.2.0
 MinimumOSVersion: 10.0.17763.0
 InstallerType: zip
 NestedInstallerType: portable
@@ -12,10 +12,10 @@ NestedInstallerFiles:
 Dependencies:
   PackageDependencies:
     - PackageIdentifier: Microsoft.DotNet.DesktopRuntime.8
-ReleaseDate: 2026-09-13
+ReleaseDate: 2026-09-15
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/emirakinc/SonarTray/releases/download/v0.1.0/SonarTray-v0.1.0-win-x64.zip
-    InstallerSha256: EB3E30D8B3969431A01813BA9EF41DDE310F04D833A93DCEF1771EFFFF7E863C
+    InstallerUrl: https://github.com/emirakinc/SonarTray/releases/download/v0.2.0/SonarTray-v0.2.0-win-x64.zip
+    InstallerSha256: 114491C390577ECEC6F02F078CF8FCD3D3C2DF5B29083A654C145C58D061A07B
 ManifestType: installer
 ManifestVersion: 1.6.0
