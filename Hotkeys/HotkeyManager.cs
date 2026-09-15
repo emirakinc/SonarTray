@@ -121,6 +121,11 @@ public sealed class HotkeyManager : IDisposable
         {
             if (new KeyGestureConverter().ConvertFromInvariantString(gesture) is not KeyGesture parsed) return false;
 
+            // The converter splits on the last '+', so "Ctrl+Shift" arrives as Key=LeftShift with
+            // Modifiers=Control - a combination RegisterHotKey accepts. Registering it would fire on
+            // the Ctrl+Shift prefix itself and swallow every Ctrl+Shift+X shortcut on the machine.
+            if (IsModifierKey(parsed.Key)) return false;
+
             if (parsed.Modifiers.HasFlag(ModifierKeys.Alt)) modifiers |= NativeMethods.MOD_ALT;
             if (parsed.Modifiers.HasFlag(ModifierKeys.Control)) modifiers |= NativeMethods.MOD_CONTROL;
             if (parsed.Modifiers.HasFlag(ModifierKeys.Shift)) modifiers |= NativeMethods.MOD_SHIFT;
@@ -134,6 +139,17 @@ public sealed class HotkeyManager : IDisposable
             return false; // the converter throws on anything it does not recognise
         }
     }
+
+    /// <summary>
+    /// True for the keys that only ever act as modifiers. A hotkey whose trigger is one of these is
+    /// never what the user meant, and is actively harmful as a global registration.
+    /// </summary>
+    public static bool IsModifierKey(Key key) => key is
+        Key.LeftCtrl or Key.RightCtrl or
+        Key.LeftShift or Key.RightShift or
+        Key.LeftAlt or Key.RightAlt or
+        Key.LWin or Key.RWin or
+        Key.System or Key.None;
 
     /// <summary>Renders a captured combination in the same spelling <see cref="TryParse"/> accepts.</summary>
     public static string Format(ModifierKeys modifiers, Key key)

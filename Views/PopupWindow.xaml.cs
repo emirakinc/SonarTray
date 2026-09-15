@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using SonarTray.Hotkeys;
 using SonarTray.Native;
 using SonarTray.Services;
 using SonarTray.ViewModels;
@@ -45,6 +46,8 @@ public partial class PopupWindow : Window
 
         // Sized from the data so flipping ChannelSpec.Aux to Visible just works.
         Height = ChromeHeight + viewModel.SubChannels.Count * ChannelRowBlock;
+        // Showing or hiding Aux changes the row count, and the window is sized to it.
+        viewModel.SubChannelsChanged += () => Height = ChromeHeight + viewModel.SubChannels.Count * ChannelRowBlock;
 
         SourceInitialized += (_, _) =>
         {
@@ -78,6 +81,9 @@ public partial class PopupWindow : Window
     /// hotkey row is capturing, the press belongs to it rather than to the panel; Escape then backs
     /// out one level at a time - capture, then the settings page, then the popup.
     /// </summary>
+    /// <summary>The presets popup is opened from code so the button keeps the plain IconButton style.</summary>
+    private void OnPresetsButtonClick(object sender, RoutedEventArgs e) => PresetsPopup.IsOpen = true;
+
     private void OnPreviewKeyDown(object sender, KeyEventArgs e)
     {
         var hotkeys = _viewModel.Hotkeys;
@@ -87,7 +93,7 @@ public partial class PopupWindow : Window
             e.Handled = true;
             // Alt-combinations arrive as Key.System with the real key in SystemKey.
             var key = e.Key == Key.System ? e.SystemKey : e.Key;
-            if (IsModifierKey(key)) return; // wait for the non-modifier half of the chord
+            if (HotkeyManager.IsModifierKey(key)) return; // wait for the non-modifier half of the chord
             hotkeys.Capture(Keyboard.Modifiers, key);
             return;
         }
@@ -95,16 +101,11 @@ public partial class PopupWindow : Window
         if (e.Key != Key.Escape) return;
         e.Handled = true;
 
-        if (_viewModel.IsSettingsOpen) _viewModel.IsSettingsOpen = false;
+        // Escape steps back one level rather than closing outright: hotkeys -> settings -> mixer.
+        if (_viewModel.Page == PanelPage.Hotkeys) _viewModel.Page = PanelPage.Settings;
+        else if (_viewModel.Page == PanelPage.Settings) _viewModel.Page = PanelPage.Mixer;
         else HidePopup();
     }
-
-    private static bool IsModifierKey(Key key) => key
-        is Key.LeftCtrl or Key.RightCtrl
-        or Key.LeftShift or Key.RightShift
-        or Key.LeftAlt or Key.RightAlt
-        or Key.LWin or Key.RWin
-        or Key.System;
 
     public void Toggle()
     {

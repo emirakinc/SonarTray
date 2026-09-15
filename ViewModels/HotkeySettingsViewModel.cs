@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using SonarTray.Hotkeys;
+using SonarTray.Resources;
 using SonarTray.Services;
 
 namespace SonarTray.ViewModels;
@@ -48,8 +49,8 @@ public sealed class HotkeyBindingViewModel : ObservableObject
     }
 
     public string Display => IsCapturing
-        ? "Tuşa basın…"
-        : string.IsNullOrWhiteSpace(Gesture) ? "Yok" : Gesture;
+        ? Strings.Hotkeys_PressKey
+        : string.IsNullOrWhiteSpace(Gesture) ? Strings.Hotkeys_None : Gesture;
 }
 
 /// <summary>
@@ -75,13 +76,23 @@ public sealed class HotkeySettingsViewModel : ObservableObject
         _config = config;
         _manager = manager;
 
+        // Ordered for reading, not by enum order: panel first, then master, then each channel.
         Bindings = new List<HotkeyBindingViewModel>
         {
-            new(HotkeyAction.MicMute, "Mikrofon sustur/aç"),
-            new(HotkeyAction.MasterMute, "Ana ses sustur/aç"),
-            new(HotkeyAction.MasterDown, "Ana sesi azalt"),
-            new(HotkeyAction.MasterUp, "Ana sesi artır"),
-            new(HotkeyAction.TogglePanel, "Paneli aç/kapat"),
+            new(HotkeyAction.TogglePanel, Strings.Action_TogglePanel),
+            new(HotkeyAction.MasterDown, Strings.Action_MasterDown),
+            new(HotkeyAction.MasterUp, Strings.Action_MasterUp),
+            new(HotkeyAction.MasterMute, Strings.Action_MasterMute),
+            new(HotkeyAction.MicMute, Strings.Action_MicMute),
+            new(HotkeyAction.GameDown, Strings.Action_GameDown),
+            new(HotkeyAction.GameUp, Strings.Action_GameUp),
+            new(HotkeyAction.GameMute, Strings.Action_GameMute),
+            new(HotkeyAction.ChatDown, Strings.Action_ChatDown),
+            new(HotkeyAction.ChatUp, Strings.Action_ChatUp),
+            new(HotkeyAction.ChatMute, Strings.Action_ChatMute),
+            new(HotkeyAction.MediaDown, Strings.Action_MediaDown),
+            new(HotkeyAction.MediaUp, Strings.Action_MediaUp),
+            new(HotkeyAction.MediaMute, Strings.Action_MediaMute),
         };
 
         CaptureCommand = new RelayCommand<HotkeyBindingViewModel>(BeginCapture);

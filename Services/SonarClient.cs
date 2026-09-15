@@ -43,6 +43,29 @@ public sealed class SonarClient
     public Task<List<RedirectionDto>?> GetRedirectionsAsync(CancellationToken ct)
         => GetJsonAsync<List<RedirectionDto>>("classicRedirections", ct);
 
+    /// <summary>Stream mode’s volume document; every channel carries a streaming and a monitoring mix.</summary>
+    public Task<VolumeSettingsDto?> GetStreamVolumesAsync(CancellationToken ct)
+        => GetJsonAsync<VolumeSettingsDto>("volumeSettings/streamer", ct);
+
+    /// <summary>One record per sub-mix ("streaming", "monitoring"), not per channel.</summary>
+    public Task<List<StreamRedirectionDto>?> GetStreamRedirectionsAsync(CancellationToken ct)
+        => GetJsonAsync<List<StreamRedirectionDto>>("streamRedirections", ct);
+
+    /// <summary>The profile currently applied to each virtual device. Small; safe to poll.</summary>
+    public Task<List<ConfigDto>?> GetSelectedConfigsAsync(CancellationToken ct)
+        => GetJsonAsync<List<ConfigDto>>("configs/selected", ct);
+
+    /// <summary>
+    /// Every profile for every device. Runs to megabytes on a well-used install, so this is
+    /// fetched only when the user actually opens a profile menu - never on the poll.
+    /// </summary>
+    public Task<List<ConfigDto>?> GetConfigsAsync(CancellationToken ct)
+        => GetJsonAsync<List<ConfigDto>>("configs", ct);
+
+    /// <summary>Which applications are playing through which device. Read-only in this API.</summary>
+    public Task<List<AudioDeviceRoutingDto>?> GetAudioDeviceRoutingAsync(CancellationToken ct)
+        => GetJsonAsync<List<AudioDeviceRoutingDto>>("audioDeviceRouting", ct);
+
     // ---- writes --------------------------------------------------------
 
     /// <param name="volumeId">master, game, chatRender, chatCapture, media, aux</param>
@@ -57,6 +80,45 @@ public sealed class SonarClient
     {
         Log.Verbose($"PUT mute {volumeId}={muted}");
         return SendEmptyAsync(HttpMethod.Put, $"volumeSettings/classic/{volumeId}/Mute/{(muted ? "true" : "false")}", ct);
+    }
+
+    /// <param name="mix">"streaming" or "monitoring"</param>
+    public Task SetStreamVolumeAsync(string volumeId, string mix, double volume, CancellationToken ct)
+    {
+        var v = Math.Clamp(volume, 0.0, 1.0).ToString("0.###", CultureInfo.InvariantCulture);
+        Log.Verbose($"PUT stream volume {volumeId}/{mix}={v}");
+        return SendEmptyAsync(HttpMethod.Put, $"volumeSettings/streamer/{volumeId}/{mix}/Volume/{v}", ct);
+    }
+
+    /// <remarks>
+    /// Note the segment: classic spells it "Mute", stream spells it "isMuted". That asymmetry is
+    /// in the API, not a typo - "Mute" returns 404 on the streamer route.
+    /// </remarks>
+    public Task SetStreamMuteAsync(string volumeId, string mix, bool muted, CancellationToken ct)
+    {
+        Log.Verbose($"PUT stream mute {volumeId}/{mix}={muted}");
+        return SendEmptyAsync(HttpMethod.Put, $"volumeSettings/streamer/{volumeId}/{mix}/isMuted/{(muted ? "true" : "false")}", ct);
+    }
+
+    /// <param name="mode">"classic" or "stream"</param>
+    public Task SetModeAsync(string mode, CancellationToken ct)
+    {
+        Log.Info($"Switching Sonar to {mode} mode");
+        return SendEmptyAsync(HttpMethod.Put, $"mode/{mode}", ct);
+    }
+
+    /// <summary>Applies a profile to whichever virtual device it belongs to.</summary>
+    public Task SelectConfigAsync(string configId, CancellationToken ct)
+    {
+        Log.Verbose($"PUT select config {configId}");
+        return SendEmptyAsync(HttpMethod.Put, $"configs/{Uri.EscapeDataString(configId)}/select", ct);
+    }
+
+    /// <param name="mix">"streaming" or "monitoring"</param>
+    public Task SetStreamRedirectionDeviceAsync(string mix, string deviceId, CancellationToken ct)
+    {
+        Log.Verbose($"PUT stream redirection {mix}={deviceId}");
+        return SendEmptyAsync(HttpMethod.Put, $"streamRedirections/{mix}/deviceId/{Uri.EscapeDataString(deviceId)}", ct);
     }
 
     /// <param name="redirectionId">game, chat, media, aux, mic</param>

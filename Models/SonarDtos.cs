@@ -55,8 +55,23 @@ public sealed class VolumeSettingsDto
 
 public sealed class ModeSetDto
 {
-    // "stream": {} is present in the payload but intentionally not mapped.
     [JsonPropertyName("classic")] public VolumeStateDto? Classic { get; set; }
+
+    /// <summary>
+    /// Empty in the classic document; populated in /volumeSettings/streamer, where each channel
+    /// carries two independent mixes.
+    /// </summary>
+    [JsonPropertyName("stream")] public StreamSetDto? Stream { get; set; }
+}
+
+/// <summary>The two sub-mixes stream mode splits every channel into.</summary>
+public sealed class StreamSetDto
+{
+    /// <summary>What goes out to viewers.</summary>
+    [JsonPropertyName("streaming")] public VolumeStateDto? Streaming { get; set; }
+
+    /// <summary>What the streamer hears.</summary>
+    [JsonPropertyName("monitoring")] public VolumeStateDto? Monitoring { get; set; }
 }
 
 public sealed class VolumeStateDto
@@ -86,4 +101,63 @@ public sealed class RedirectionDto
     [JsonPropertyName("id")] public string Id { get; set; } = "";
     [JsonPropertyName("deviceId")] public string? DeviceId { get; set; }
     [JsonPropertyName("isRunning")] public bool IsRunning { get; set; }
+}
+
+// ---- stream mode --------------------------------------------------------
+
+/// <summary>GET /streamRedirections — one record per sub-mix, not per channel.</summary>
+public sealed class StreamRedirectionDto
+{
+    /// <summary>"streaming" or "monitoring"</summary>
+    [JsonPropertyName("streamRedirectionId")] public string Id { get; set; } = "";
+    [JsonPropertyName("deviceId")] public string? DeviceId { get; set; }
+    [JsonPropertyName("isRunning")] public bool IsRunning { get; set; }
+
+    /// <summary>Which channels are folded into this sub-mix.</summary>
+    [JsonPropertyName("status")] public List<StreamRoleStatusDto>? Status { get; set; }
+}
+
+public sealed class StreamRoleStatusDto
+{
+    /// <summary>game, chatRender, chatCapture, media, aux</summary>
+    [JsonPropertyName("role")] public string Role { get; set; } = "";
+    [JsonPropertyName("isEnabled")] public bool IsEnabled { get; set; }
+}
+
+// ---- audio profiles -----------------------------------------------------
+
+/// <summary>
+/// GET /configs and /configs/selected. The "data" blob (EQ curves, boosts, surround) is
+/// deliberately not mapped: SonarTray only ever selects a profile, never edits one, and the
+/// full document runs to megabytes.
+/// </summary>
+public sealed class ConfigDto
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = "";
+    [JsonPropertyName("name")] public string Name { get; set; } = "";
+
+    /// <summary>game, chatRender, chatCapture, media, aux — matches a channel volume id.</summary>
+    [JsonPropertyName("virtualAudioDevice")] public string VirtualAudioDevice { get; set; } = "";
+}
+
+// ---- per-application routing (read-only) --------------------------------
+
+/// <summary>GET /audioDeviceRouting</summary>
+public sealed class AudioDeviceRoutingDto
+{
+    [JsonPropertyName("deviceId")] public string DeviceId { get; set; } = "";
+    [JsonPropertyName("role")] public string Role { get; set; } = "";
+    [JsonPropertyName("dataFlow")] public string DataFlow { get; set; } = "";
+    [JsonPropertyName("audioSessions")] public List<AudioSessionDto>? AudioSessions { get; set; }
+}
+
+public sealed class AudioSessionDto
+{
+    [JsonPropertyName("id")] public string Id { get; set; } = "";
+    [JsonPropertyName("processName")] public string ProcessName { get; set; } = "";
+    [JsonPropertyName("processId")] public int ProcessId { get; set; }
+    [JsonPropertyName("displayName")] public string? DisplayName { get; set; }
+    [JsonPropertyName("isSystemSound")] public bool IsSystemSound { get; set; }
+    [JsonPropertyName("state")] public string? State { get; set; }
+    [JsonPropertyName("routingErrorDetected")] public bool RoutingErrorDetected { get; set; }
 }

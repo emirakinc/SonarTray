@@ -1,0 +1,334 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Channel_Master" xml:space="preserve">
+    <value>Ana Ses</value>
+  </data>
+  <data name="Channel_Game" xml:space="preserve">
+    <value>Oyun</value>
+  </data>
+  <data name="Channel_Chat" xml:space="preserve">
+    <value>Sohbet</value>
+  </data>
+  <data name="Channel_Media" xml:space="preserve">
+    <value>Medya</value>
+  </data>
+  <data name="Channel_Mic" xml:space="preserve">
+    <value>Mikrofon</value>
+  </data>
+  <data name="Channel_Aux" xml:space="preserve">
+    <value>Aux</value>
+  </data>
+  <data name="Panel_Title" xml:space="preserve">
+    <value>Sonar Mikser</value>
+  </data>
+  <data name="Panel_StartWithWindows" xml:space="preserve">
+    <value>Windows ile başlat</value>
+  </data>
+  <data name="Panel_Exit" xml:space="preserve">
+    <value>Çıkış</value>
+  </data>
+  <data name="Panel_Settings" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="Panel_OpenGg" xml:space="preserve">
+    <value>SteelSeries GG'yi aç</value>
+  </data>
+  <data name="Panel_Refresh" xml:space="preserve">
+    <value>Yenile</value>
+  </data>
+  <data name="Panel_MuteToggle" xml:space="preserve">
+    <value>Sustur / sesi aç</value>
+  </data>
+  <data name="Panel_DeviceMissing" xml:space="preserve">
+    <value>Seçili cihaz bağlı değil ya da yönlendirme çalışmıyor</value>
+  </data>
+  <data name="Panel_Device" xml:space="preserve">
+    <value>Çıkış cihazı</value>
+  </data>
+  <data name="Panel_DeviceCapture" xml:space="preserve">
+    <value>Giriş cihazı</value>
+  </data>
+  <data name="Panel_Volume" xml:space="preserve">
+    <value>Ses</value>
+  </data>
+  <data name="Status_Searching" xml:space="preserve">
+    <value>Sonar aranıyor…</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Bağlı</value>
+  </data>
+  <data name="Status_StreamMode" xml:space="preserve">
+    <value>Stream modu</value>
+  </data>
+  <data name="Status_NotFound" xml:space="preserve">
+    <value>Sonar bulunamadı</value>
+  </data>
+  <data name="Offline_Title" xml:space="preserve">
+    <value>Sonar bulunamadı</value>
+  </data>
+  <data name="Offline_Hint" xml:space="preserve">
+    <value>SteelSeries GG çalışıyor mu?</value>
+  </data>
+  <data name="Offline_Retry" xml:space="preserve">
+    <value>Yeniden dene</value>
+  </data>
+  <data name="Mode_Classic" xml:space="preserve">
+    <value>Classic</value>
+  </data>
+  <data name="Mode_Stream" xml:space="preserve">
+    <value>Stream</value>
+  </data>
+  <data name="Mode_Switch" xml:space="preserve">
+    <value>Modu değiştir</value>
+  </data>
+  <data name="Mode_SwitchToClassic" xml:space="preserve">
+    <value>Classic moda geç</value>
+  </data>
+  <data name="Mode_SwitchToStream" xml:space="preserve">
+    <value>Stream moda geç</value>
+  </data>
+  <data name="Stream_Title" xml:space="preserve">
+    <value>Sonar Stream modunda</value>
+  </data>
+  <data name="Stream_Hint" xml:space="preserve">
+    <value>Bu araç yalnızca Classic modu destekler.</value>
+  </data>
+  <data name="Stream_Streaming" xml:space="preserve">
+    <value>Yayın</value>
+  </data>
+  <data name="Stream_Monitoring" xml:space="preserve">
+    <value>Dinleme</value>
+  </data>
+  <data name="Hotkeys_Title" xml:space="preserve">
+    <value>Kısayollar</value>
+  </data>
+  <data name="Hotkeys_Reset" xml:space="preserve">
+    <value>Varsayılana dön</value>
+  </data>
+  <data name="Hotkeys_Help" xml:space="preserve">
+    <value>Bir kısayola tıklayıp yeni kombinasyona basın. Esc iptal eder, Del temizler. En az bir değiştirici tuş gerekir.</value>
+  </data>
+  <data name="Hotkeys_Clear" xml:space="preserve">
+    <value>Kaldır</value>
+  </data>
+  <data name="Hotkeys_ClearTip" xml:space="preserve">
+    <value>Kısayolu kaldır</value>
+  </data>
+  <data name="Hotkeys_PressKey" xml:space="preserve">
+    <value>Tuşa basın…</value>
+  </data>
+  <data name="Hotkeys_None" xml:space="preserve">
+    <value>Yok</value>
+  </data>
+  <data name="Hotkeys_Taken" xml:space="preserve">
+    <value>Bu kombinasyonu başka bir uygulama kullanıyor</value>
+  </data>
+  <data name="Action_MicMute" xml:space="preserve">
+    <value>Mikrofon sustur/aç</value>
+  </data>
+  <data name="Action_MasterMute" xml:space="preserve">
+    <value>Ana ses sustur/aç</value>
+  </data>
+  <data name="Action_MasterUp" xml:space="preserve">
+    <value>Ana sesi artır</value>
+  </data>
+  <data name="Action_MasterDown" xml:space="preserve">
+    <value>Ana sesi azalt</value>
+  </data>
+  <data name="Action_TogglePanel" xml:space="preserve">
+    <value>Paneli aç/kapat</value>
+  </data>
+  <data name="Action_GameUp" xml:space="preserve">
+    <value>Oyun sesini artır</value>
+  </data>
+  <data name="Action_GameDown" xml:space="preserve">
+    <value>Oyun sesini azalt</value>
+  </data>
+  <data name="Action_GameMute" xml:space="preserve">
+    <value>Oyun sesini sustur/aç</value>
+  </data>
+  <data name="Action_ChatUp" xml:space="preserve">
+    <value>Sohbet sesini artır</value>
+  </data>
+  <data name="Action_ChatDown" xml:space="preserve">
+    <value>Sohbet sesini azalt</value>
+  </data>
+  <data name="Action_ChatMute" xml:space="preserve">
+    <value>Sohbet sesini sustur/aç</value>
+  </data>
+  <data name="Action_MediaUp" xml:space="preserve">
+    <value>Medya sesini artır</value>
+  </data>
+  <data name="Action_MediaDown" xml:space="preserve">
+    <value>Medya sesini azalt</value>
+  </data>
+  <data name="Action_MediaMute" xml:space="preserve">
+    <value>Medya sesini sustur/aç</value>
+  </data>
+  <data name="Tray_Muted" xml:space="preserve">
+    <value>SonarTray – Ana ses kapalı</value>
+  </data>
+  <data name="Tray_Volume" xml:space="preserve">
+    <value>SonarTray – Ana ses %{0}</value>
+  </data>
+  <data name="Tray_StreamMode" xml:space="preserve">
+    <value>SonarTray – Sonar Stream modunda</value>
+  </data>
+  <data name="Tray_Searching" xml:space="preserve">
+    <value>SonarTray – Sonar aranıyor…</value>
+  </data>
+  <data name="Tray_NotFound" xml:space="preserve">
+    <value>SonarTray – Sonar bulunamadı</value>
+  </data>
+  <data name="Osd_Muted" xml:space="preserve">
+    <value>Kapalı</value>
+  </data>
+  <data name="Osd_Percent" xml:space="preserve">
+    <value>%{0}</value>
+  </data>
+  <data name="Device_NotConnected" xml:space="preserve">
+    <value>(bağlı değil)</value>
+  </data>
+  <data name="Profiles_Title" xml:space="preserve">
+    <value>Ses profili</value>
+  </data>
+  <data name="Profiles_Loading" xml:space="preserve">
+    <value>Yükleniyor…</value>
+  </data>
+  <data name="Profiles_None" xml:space="preserve">
+    <value>Profil yok</value>
+  </data>
+  <data name="Presets_Title" xml:space="preserve">
+    <value>Ön ayarlar</value>
+  </data>
+  <data name="Presets_Save" xml:space="preserve">
+    <value>Kaydet</value>
+  </data>
+  <data name="Presets_NameHint" xml:space="preserve">
+    <value>Yeni ön ayar adı</value>
+  </data>
+  <data name="Presets_None" xml:space="preserve">
+    <value>Henüz ön ayar yok</value>
+  </data>
+  <data name="Presets_Delete" xml:space="preserve">
+    <value>Sil</value>
+  </data>
+  <data name="Presets_Full" xml:space="preserve">
+    <value>Ön ayar sınırına ulaşıldı</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Ayarlar</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Dil</value>
+  </data>
+  <data name="Settings_LanguageAuto" xml:space="preserve">
+    <value>Sistem dili</value>
+  </data>
+  <data name="Settings_ShowAux" xml:space="preserve">
+    <value>Aux kanalını göster</value>
+  </data>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Kısayol ses adımı</value>
+  </data>
+  <data name="Settings_Osd" xml:space="preserve">
+    <value>Ekran üstü göstergeyi göster</value>
+  </data>
+  <data name="Settings_OsdDuration" xml:space="preserve">
+    <value>Gösterim süresi</value>
+  </data>
+  <data name="Settings_TrayWheel" xml:space="preserve">
+    <value>Tepsi ikonu üzerinde fare tekerleği sesi değiştirsin</value>
+  </data>
+  <data name="Settings_CheckUpdates" xml:space="preserve">
+    <value>Güncellemeleri denetle</value>
+  </data>
+  <data name="Settings_RestartNeeded" xml:space="preserve">
+    <value>Yeniden başlatınca geçerli olur</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0:0.0} sn</value>
+  </data>
+  <data name="Settings_OpenLog" xml:space="preserve">
+    <value>Log klasörünü aç</value>
+  </data>
+  <data name="Settings_Shortcuts" xml:space="preserve">
+    <value>Klavye kısayolları</value>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>Sürüm {0}</value>
+  </data>
+  <data name="Panel_Back" xml:space="preserve">
+    <value>Geri</value>
+  </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>{0} sürümü yayımlandı</value>
+  </data>
+  <data name="Update_Download" xml:space="preserve">
+    <value>İndir</value>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>Güncelsiniz</value>
+  </data>
+  <data name="Update_Skip" xml:space="preserve">
+    <value>Atla</value>
+  </data>
+</root>

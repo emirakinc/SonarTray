@@ -10,9 +10,14 @@
     <LangVersion>latest</LangVersion>
     <AssemblyName>SonarTray</AssemblyName>
     <RootNamespace>SonarTray</RootNamespace>
+    <!-- This project sits at the repo root, so default globbing would swallow the test project's
+         sources. Excluding here covers Compile, Page, None and EmbeddedResource in one go. -->
+    <DefaultItemExcludes>$(DefaultItemExcludes);tests\**</DefaultItemExcludes>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets/tray.ico</ApplicationIcon>
     <Version>0.1.0</Version>
+    <!-- Both UI languages are embedded in the main assembly (see Resources/Strings.cs), so no
+         satellite assemblies are produced and this only trims NuGet-supplied ones. -->
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <!-- WFAC010: WinForms analyzer complains about DPI settings in the manifest; WPF needs them there -->
     <NoWarn>$(NoWarn);WFAC010</NoWarn>
@@ -35,6 +40,11 @@
     <Using Remove="System.Windows.Shapes" />
     <Using Include="System.IO" />
     <Using Include="System.Net.Http" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- TrayIconFactory and a few helpers are internal on purpose; the test project still needs them. -->
+    <InternalsVisibleTo Include="SonarTray.Tests" />
   </ItemGroup>
 
 </Project>

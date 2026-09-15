@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # The app itself has no NuGet dependencies; the test project does.
+  - package-ecosystem: nuget
+    directory: /tests/SonarTray.Tests
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "chore"
+    groups:
+      test-tooling:
+        patterns: ["xunit*", "Microsoft.NET.Test.Sdk"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

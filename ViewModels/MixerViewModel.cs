@@ -2,9 +2,13 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using System.Windows.Threading;
 using SonarTray.Models;
+using SonarTray.Resources;
 using SonarTray.Services;
 
 namespace SonarTray.ViewModels;
+
+/// <summary>The panel shows exactly one of these at a time.</summary>
+public enum PanelPage { Mixer, Settings, Hotkeys }
 
 /// <summary>Whole-panel state. Created and used on the UI thread.</summary>
 public sealed class MixerViewModel : ObservableObject
@@ -27,15 +31,22 @@ public sealed class MixerViewModel : ObservableObject
     private ConnectionState _state;
     private bool _panelOpen;
     private bool _refreshing;
-    private bool _isSettingsOpen;
+    private bool _switchingMode;
+    private PanelPage _page = PanelPage.Mixer;
 
     public ObservableCollection<ChannelViewModel> Channels { get; }
 
     /// <summary>The master row, rendered on its own card above the rest.</summary>
     public ChannelViewModel Master { get; }
 
-    /// <summary>Everything except master, in <see cref="ChannelSpec.VisibleSpecs"/> order.</summary>
-    public IReadOnlyList<ChannelViewModel> SubChannels { get; }
+    /// <summary>
+    /// Everything except master, in spec order, minus any channel the user has switched off.
+    /// Rebuilt in place rather than replaced so the panel's ItemsControl keeps its bindings.
+    /// </summary>
+    public ObservableCollection<ChannelViewModel> SubChannels { get; }
+
+    /// <summary>Raised when a channel is shown or hidden, so the window can resize itself.</summary>
+    public event Action? SubChannelsChanged;
 
     /// <summary>Null when the kind is not among the visible specs.</summary>
     public ChannelViewModel? ChannelOf(ChannelKind kind)
@@ -44,39 +55,69 @@ public sealed class MixerViewModel : ObservableObject
     /// <summary>The hotkey page, shown in place of the mixer rows.</summary>
     public HotkeySettingsViewModel Hotkeys { get; }
 
-    public bool IsSettingsOpen
+    /// <summary>The settings page, shown in place of the mixer rows.</summary>
+    public SettingsViewModel Settings { get; }
+
+    /// <summary>The presets popup, reached from the title bar.</summary>
+    public PresetsViewModel Presets { get; }
+
+    /// <summary>Which of the three pages the panel is showing.</summary>
+    public PanelPage Page
     {
-        get => _isSettingsOpen;
+        get => _page;
         set
         {
-            if (!SetProperty(ref _isSettingsOpen, value)) return;
+            if (!SetProperty(ref _page, value)) return;
             OnPropertyChanged(nameof(IsMixerVisible));
-            if (!value) Hotkeys.CancelCapture();
+            OnPropertyChanged(nameof(IsSettingsVisible));
+            OnPropertyChanged(nameof(IsHotkeysVisible));
+            OnPropertyChanged(nameof(IsSettingsOpen));
+
+            // Leaving the hotkey page mid-capture would otherwise keep the manager suspended,
+            // which silently disables every global shortcut until the page is opened again.
+            if (value != PanelPage.Hotkeys) Hotkeys.CancelCapture();
         }
     }
 
-    /// <summary>Rows and their offline/stream overlays hide while the settings page is up.</summary>
-    public bool IsMixerVisible => !_isSettingsOpen;
+    /// <summary>True on any page other than the mixer; drives the Escape key and the title bar.</summary>
+    public bool IsSettingsOpen => _page != PanelPage.Mixer;
+
+    /// <summary>Rows and their offline/stream overlays hide while another page is up.</summary>
+    public bool IsMixerVisible => _page == PanelPage.Mixer;
+    public bool IsSettingsVisible => _page == PanelPage.Settings;
+    public bool IsHotkeysVisible => _page == PanelPage.Hotkeys;
 
     public ICommand ToggleSettingsCommand { get; }
+    public ICommand SwitchModeCommand { get; }
+    public ICommand ShowHotkeysCommand { get; }
+    public ICommand BackToMixerCommand { get; }
     public ICommand RetryCommand { get; }
     public ICommand RefreshCommand { get; }
     public ICommand ExitCommand { get; }
     public ICommand OpenGgCommand { get; }
 
-    public MixerViewModel(SonarConnection connection, HotkeySettingsViewModel hotkeys, Action exit, Action openGg)
+    public MixerViewModel(SonarConnection connection, HotkeySettingsViewModel hotkeys,
+                          SettingsViewModel settings, PresetStore presets, Action exit, Action openGg)
     {
         _connection = connection;
         Hotkeys = hotkeys;
+        Settings = settings;
         _dispatcher = Dispatcher.CurrentDispatcher;
         _state = connection.State;
 
+        // Every channel is constructed, including the optional ones: a hidden channel still needs
+        // a view model so its hotkeys work and the next poll has somewhere to land.
         Channels = new ObservableCollection<ChannelViewModel>(
-            ChannelSpec.VisibleSpecs.Select(spec => new ChannelViewModel(spec, connection)));
+            ChannelSpec.All.Select(spec => new ChannelViewModel(spec, connection)));
 
-        // Never Channels[0]: VisibleSpecs filters on a flag, so the order is not guaranteed.
+        // Never Channels[0]: the spec order is not guaranteed to start with master.
         Master = Channels.First(c => c.Spec.Kind == ChannelKind.Master);
-        SubChannels = Channels.Where(c => c.Spec.Kind != ChannelKind.Master).ToList();
+        SubChannels = new ObservableCollection<ChannelViewModel>();
+        RebuildSubChannels();
+
+        // Passed as a callback rather than the collection itself: a preset covers every channel,
+        // including any the user currently has hidden.
+        Presets = new PresetsViewModel(presets, () => Channels);
 
         _poll = new DispatcherTimer(DispatcherPriority.Background) { Interval = PollInterval };
         _poll.Tick += (_, _) => _ = RefreshAsync();
@@ -85,7 +126,11 @@ public sealed class MixerViewModel : ObservableObject
         _idlePoll.Tick += (_, _) => _ = RefreshVolumesAsync();
         _idlePoll.Start(); // the panel starts closed
 
-        ToggleSettingsCommand = new RelayCommand(() => IsSettingsOpen = !IsSettingsOpen);
+        ToggleSettingsCommand = new RelayCommand(
+            () => Page = Page == PanelPage.Mixer ? PanelPage.Settings : PanelPage.Mixer);
+        SwitchModeCommand = new RelayCommand(() => _ = SwitchModeAsync());
+        ShowHotkeysCommand = new RelayCommand(() => Page = PanelPage.Hotkeys);
+        BackToMixerCommand = new RelayCommand(() => Page = PanelPage.Mixer);
         RetryCommand = new RelayCommand(() => _connection.RetryNow());
         RefreshCommand = new RelayCommand(() => _ = RefreshAsync());
         ExitCommand = new RelayCommand(exit);
@@ -115,11 +160,37 @@ public sealed class MixerViewModel : ObservableObject
 
     public string StatusText => _state switch
     {
-        ConnectionState.Searching => "Sonar aranıyor…",
-        ConnectionState.Connected => "Bağlı",
-        ConnectionState.StreamMode => "Stream modu",
-        _ => "Sonar bulunamadı",
+        ConnectionState.Searching => Strings.Status_Searching,
+        ConnectionState.Connected => Strings.Status_Connected,
+        ConnectionState.StreamMode => Strings.Status_StreamMode,
+        _ => Strings.Status_NotFound,
     };
+
+    /// <summary>
+    /// Flips Sonar between Classic and Stream. The state comes back through the normal refresh
+    /// rather than being assumed here: GG can refuse, and guessing would leave the panel lying.
+    /// </summary>
+    private async Task SwitchModeAsync()
+    {
+        var client = _connection.Client;
+        if (client is null || _switchingMode) return;
+
+        _switchingMode = true;
+        try
+        {
+            var target = IsStreamMode ? "classic" : "stream";
+            await client.SetModeAsync(target, CancellationToken.None);
+            await RefreshAsync();
+        }
+        catch (Exception ex)
+        {
+            _connection.ReportFailure(ex);
+        }
+        finally
+        {
+            _switchingMode = false;
+        }
+    }
 
     private void OnConnectionStateChanged(ConnectionState state)
     {
@@ -143,6 +214,24 @@ public sealed class MixerViewModel : ObservableObject
         }
     }
 
+    /// <summary>
+    /// Applies the current visibility settings. <see cref="ChannelSpec.Visible"/> is the default;
+    /// Aux is the one channel the user can turn back on.
+    /// </summary>
+    public void RebuildSubChannels()
+    {
+        var wanted = Channels
+            .Where(c => c.Spec.Kind != ChannelKind.Master)
+            .Where(c => c.Spec.Visible || (c.Spec.Kind == ChannelKind.Aux && Settings.ShowAux))
+            .ToList();
+
+        if (wanted.Count == SubChannels.Count && wanted.SequenceEqual(SubChannels)) return;
+
+        SubChannels.Clear();
+        foreach (var channel in wanted) SubChannels.Add(channel);
+        SubChannelsChanged?.Invoke();
+    }
+
     // ---- panel lifecycle ------------------------------------------------
 
     public void OnPanelOpened()
@@ -153,13 +242,43 @@ public sealed class MixerViewModel : ObservableObject
         OnPropertyChanged(nameof(StartWithWindows));
         if (IsOffline) _connection.RetryNow();
         _ = RefreshAsync();
+        _ = RefreshProfilesAsync();
         _poll.Start();
+    }
+
+    /// <summary>
+    /// Which profile each channel is on. Kept out of <see cref="RefreshAsync"/> deliberately: at
+    /// roughly 16 KB of JSON it is an order of magnitude more expensive than the volume document,
+    /// and nothing changes it except the user - here or in GG.
+    /// </summary>
+    public async Task RefreshProfilesAsync()
+    {
+        var client = _connection.Client;
+        if (client is null) return;
+
+        try
+        {
+            var selected = await client.GetSelectedConfigsAsync(CancellationToken.None);
+            if (selected is null) return;
+
+            foreach (var channel in Channels)
+            {
+                if (!channel.HasProfilePicker) continue;
+                channel.ApplySelectedProfile(
+                    selected.FirstOrDefault(c => string.Equals(c.VirtualAudioDevice, channel.Spec.VolumeId,
+                                                               StringComparison.OrdinalIgnoreCase)));
+            }
+        }
+        catch (Exception ex)
+        {
+            _connection.ReportFailure(ex);
+        }
     }
 
     public void OnPanelClosed()
     {
         _panelOpen = false;
-        IsSettingsOpen = false; // always reopen on the mixer
+        Page = PanelPage.Mixer; // always reopen on the mixer
         _poll.Stop();
         _refreshCts?.Cancel();
         _idlePoll.Start();
@@ -173,6 +292,7 @@ public sealed class MixerViewModel : ObservableObject
         if (client is null || _refreshing) return;
 
         _refreshCts?.Cancel();
+        _refreshCts?.Dispose();
         _refreshCts = new CancellationTokenSource();
         var ct = _refreshCts.Token;
         _refreshing = true;
@@ -211,6 +331,7 @@ public sealed class MixerViewModel : ObservableObject
         if (client is null || _panelOpen || _refreshing) return;
 
         _idleCts?.Cancel();
+        _idleCts?.Dispose();
         _idleCts = new CancellationTokenSource();
         var ct = _idleCts.Token;
         try

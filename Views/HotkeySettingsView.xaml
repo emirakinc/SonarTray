@@ -1,19 +1,22 @@
 <UserControl x:Class="SonarTray.Views.HotkeySettingsView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:SonarTray.Resources"
              Focusable="False">
     <DockPanel>
 
         <Grid DockPanel.Dock="Top" Height="26" Margin="2,0,2,8">
-            <TextBlock Text="Kısayollar" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
-            <Button Style="{StaticResource FlatButton}" Content="Varsayılana dön" FontSize="12"
+            <TextBlock Text="{x:Static res:Strings.Hotkeys_Title}" FontWeight="SemiBold" FontSize="14" VerticalAlignment="Center"/>
+            <Button Style="{StaticResource FlatButton}" Content="{x:Static res:Strings.Hotkeys_Reset}" FontSize="12"
                     Command="{Binding ResetCommand}" HorizontalAlignment="Right" VerticalAlignment="Center"/>
         </Grid>
 
         <TextBlock DockPanel.Dock="Bottom" Foreground="{StaticResource MutedTextBrush}" FontSize="11"
                    Margin="2,8,2,0" TextWrapping="Wrap"
-                   Text="Bir kısayola tıklayıp yeni kombinasyona basın. Esc iptal eder, Del temizler. En az bir değiştirici tuş gerekir."/>
+                   Text="{x:Static res:Strings.Hotkeys_Help}"/>
 
+        <!-- Fourteen actions no longer fit the panel, which is sized to the mixer rows. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False">
         <ItemsControl ItemsSource="{Binding Bindings}" Focusable="False">
             <ItemsControl.ItemTemplate>
                 <DataTemplate>
@@ -41,7 +44,7 @@
                                         <DataTrigger Binding="{Binding IsBlocked}" Value="True">
                                             <Setter Property="BorderBrush" Value="{StaticResource WarnBrush}"/>
                                             <Setter Property="Foreground" Value="{StaticResource WarnBrush}"/>
-                                            <Setter Property="ToolTip" Value="Bu kombinasyonu başka bir uygulama kullanıyor"/>
+                                            <Setter Property="ToolTip" Value="{x:Static res:Strings.Hotkeys_Taken}"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -49,12 +52,13 @@
                         </Button>
 
                         <Button Grid.Column="2" Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="11"
-                                ToolTip="Kısayolu kaldır" AutomationProperties.Name="Kaldır"
+                                ToolTip="{x:Static res:Strings.Hotkeys_ClearTip}" AutomationProperties.Name="{x:Static res:Strings.Hotkeys_Clear}"
                                 Command="{Binding DataContext.ClearCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                 CommandParameter="{Binding}" VerticalAlignment="Center" Margin="2,0,0,0"/>
                     </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
+        </ScrollViewer>
     </DockPanel>
 </UserControl>

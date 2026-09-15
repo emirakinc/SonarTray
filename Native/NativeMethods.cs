@@ -54,6 +54,42 @@ internal static class NativeMethods
     [DllImport("user32.dll", EntryPoint = "SetWindowLongPtrW", SetLastError = true)]
     public static extern IntPtr SetWindowLongPtr(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
+    // --- low-level mouse hook ------------------------------------------------
+    /// <summary>WH_MOUSE_LL: the only way to see a wheel event the shell never forwards to us.</summary>
+    public const int WH_MOUSE_LL = 14;
+
+    public const int WM_MOUSEWHEEL = 0x020A;
+
+    /// <summary>One notch of the wheel. The delta arrives as a multiple of this.</summary>
+    public const int WHEEL_DELTA = 120;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct MSLLHOOKSTRUCT
+    {
+        public POINT pt;
+        /// <summary>For a wheel event the delta is in the high word, signed.</summary>
+        public uint mouseData;
+        public uint flags;
+        public uint time;
+        public IntPtr dwExtraInfo;
+    }
+
+    public delegate IntPtr HookProc(int nCode, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr SetWindowsHookEx(int idHook, HookProc lpfn, IntPtr hMod, uint dwThreadId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool UnhookWindowsHookEx(IntPtr hhk);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr CallNextHookEx(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetCursorPos(out POINT lpPoint);
+
     // --- global hotkeys -----------------------------------------------------
     /// <summary>Parent value that makes CreateWindow produce a message-only window.</summary>
     public static readonly IntPtr HWND_MESSAGE = new(-3);

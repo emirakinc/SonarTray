@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Windows.Threading;
 using Microsoft.Win32;
 using SonarTray.Native;
+using SonarTray.Resources;
 using SonarTray.Services;
 using SonarTray.ViewModels;
 using SonarTray.Views;
@@ -31,12 +32,19 @@ public sealed class TrayIconHost : IDisposable
     private readonly Action _leftClick;
     private readonly TrayIconCache _cache = new();
     private readonly DispatcherTimer _coalesce;
+    private readonly TrayHoverTracker _hover = new();
+    private readonly TrayWheelHook? _wheel;
 
     private TrayIconKey? _applied;
     private DateTime _lastApplyUtc = DateTime.MinValue;
     private bool _disposed;
 
-    public TrayIconHost(SonarConnection connection, MixerViewModel mixer, PopupWindow popup, Action leftClick)
+    /// <param name="onWheel">
+    /// Receives wheel notches over the icon; null disables the hook entirely, which is what the
+    /// "mouse wheel over the tray icon" setting turns off.
+    /// </param>
+    public TrayIconHost(SonarConnection connection, MixerViewModel mixer, PopupWindow popup, Action leftClick,
+                        Action<int>? onWheel)
     {
         _connection = connection;
         _master = mixer.Master;
@@ -48,8 +56,13 @@ public sealed class TrayIconHost : IDisposable
 
         _icon = new WF.NotifyIcon { Visible = false };
         _icon.MouseUp += OnMouseUp;
+        // The shell raises this only while the pointer is over our icon, which is the whole basis
+        // for deciding whether a global wheel event belongs to us.
+        _icon.MouseMove += OnIconMouseMove;
         Apply();
         _icon.Visible = true;
+
+        if (onWheel is not null) _wheel = new TrayWheelHook((x, y) => _hover.IsOver(x, y), onWheel);
 
         connection.StateChanged += OnStateChanged;
         _master.PropertyChanged += OnMasterChanged;
@@ -71,6 +84,30 @@ public sealed class TrayIconHost : IDisposable
     /// <summary>Raised on a dedicated SystemEvents thread; the cache and GDI+ are UI-thread only.</summary>
     private void OnDisplaySettingsChanged(object? sender, EventArgs e)
         => _popup.Dispatcher.BeginInvoke(new Action(Request));
+
+    /// <summary>
+    /// Installs or removes the wheel hook. Toggled from the settings page, so it must take effect
+    /// immediately rather than on the next start.
+    /// </summary>
+    public bool WheelEnabled
+    {
+        get => _wheel?.IsInstalled ?? false;
+        set
+        {
+            if (_wheel is null || _disposed) return;
+            if (value) _wheel.Install();
+            else _wheel.Uninstall();
+        }
+    }
+
+    /// <summary>
+    /// Records where the pointer was. The event's own coordinates are not dependable across shell
+    /// versions, so the position comes from the system instead.
+    /// </summary>
+    private void OnIconMouseMove(object? sender, WF.MouseEventArgs e)
+    {
+        if (NativeMethods.GetCursorPos(out var pt)) _hover.Report(pt.X, pt.Y);
+    }
 
     private void OnMouseUp(object? sender, WF.MouseEventArgs e)
     {
@@ -145,11 +182,11 @@ public sealed class TrayIconHost : IDisposable
     private string Text() => _connection.State switch
     {
         ConnectionState.Connected => _master.IsMuted
-            ? "SonarTray – Ana ses kapalı"
-            : $"SonarTray – Ana ses %{_master.Percent}",
-        ConnectionState.StreamMode => "SonarTray – Sonar Stream modunda",
-        ConnectionState.Searching => "SonarTray – Sonar aranıyor…",
-        _ => "SonarTray – Sonar bulunamadı",
+            ? Strings.Tray_Muted
+            : Strings.Format("Tray_Volume", _master.Percent),
+        ConnectionState.StreamMode => Strings.Tray_StreamMode,
+        ConnectionState.Searching => Strings.Tray_Searching,
+        _ => Strings.Tray_NotFound,
     };
 
     public void Dispose()
@@ -157,6 +194,8 @@ public sealed class TrayIconHost : IDisposable
         if (_disposed) return;
         _disposed = true;
         _coalesce.Stop();
+        _wheel?.Dispose();
+        _icon.MouseMove -= OnIconMouseMove;
         _connection.StateChanged -= OnStateChanged;
         _master.PropertyChanged -= OnMasterChanged;
         SystemEvents.DisplaySettingsChanged -= OnDisplaySettingsChanged; // static event: leaks this instance otherwise

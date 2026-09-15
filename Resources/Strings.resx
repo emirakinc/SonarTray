@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Channel_Master" xml:space="preserve">
+    <value>Master</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Channel_Game" xml:space="preserve">
+    <value>Game</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Channel_Chat" xml:space="preserve">
+    <value>Chat</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Channel_Media" xml:space="preserve">
+    <value>Media</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Channel_Mic" xml:space="preserve">
+    <value>Microphone</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Channel_Aux" xml:space="preserve">
+    <value>Aux</value>
+    <comment>Mixer channel name</comment>
+  </data>
+  <data name="Panel_Title" xml:space="preserve">
+    <value>Sonar Mixer</value>
+    <comment>Panel header</comment>
+  </data>
+  <data name="Panel_StartWithWindows" xml:space="preserve">
+    <value>Start with Windows</value>
+    <comment>Checkbox</comment>
+  </data>
+  <data name="Panel_Exit" xml:space="preserve">
+    <value>Exit</value>
+    <comment>Button</comment>
+  </data>
+  <data name="Panel_Settings" xml:space="preserve">
+    <value>Settings</value>
+    <comment>Title-bar button</comment>
+  </data>
+  <data name="Panel_OpenGg" xml:space="preserve">
+    <value>Open SteelSeries GG</value>
+    <comment>Title-bar button tooltip</comment>
+  </data>
+  <data name="Panel_Refresh" xml:space="preserve">
+    <value>Refresh</value>
+    <comment>Title-bar button</comment>
+  </data>
+  <data name="Panel_MuteToggle" xml:space="preserve">
+    <value>Mute / unmute</value>
+    <comment>Tooltip on the mute button</comment>
+  </data>
+  <data name="Panel_DeviceMissing" xml:space="preserve">
+    <value>The selected device is disconnected, or the redirection is not running</value>
+    <comment>Warning icon tooltip on a channel row</comment>
+  </data>
+  <data name="Panel_Device" xml:space="preserve">
+    <value>Output device</value>
+    <comment>Accessibility name for the device picker</comment>
+  </data>
+  <data name="Panel_DeviceCapture" xml:space="preserve">
+    <value>Input device</value>
+    <comment>Accessibility name for the mic device picker</comment>
+  </data>
+  <data name="Panel_Volume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Accessibility name for a volume slider</comment>
+  </data>
+  <data name="Status_Searching" xml:space="preserve">
+    <value>Looking for Sonar…</value>
+  </data>
+  <data name="Status_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="Status_StreamMode" xml:space="preserve">
+    <value>Stream mode</value>
+  </data>
+  <data name="Status_NotFound" xml:space="preserve">
+    <value>Sonar not found</value>
+  </data>
+  <data name="Offline_Title" xml:space="preserve">
+    <value>Sonar not found</value>
+    <comment>Overlay headline</comment>
+  </data>
+  <data name="Offline_Hint" xml:space="preserve">
+    <value>Is SteelSeries GG running?</value>
+    <comment>Overlay body</comment>
+  </data>
+  <data name="Offline_Retry" xml:space="preserve">
+    <value>Try again</value>
+    <comment>Overlay button</comment>
+  </data>
+  <data name="Mode_Classic" xml:space="preserve">
+    <value>Classic</value>
+    <comment>Sonar mode name; kept untranslated, GG shows it in English</comment>
+  </data>
+  <data name="Mode_Stream" xml:space="preserve">
+    <value>Stream</value>
+    <comment>Sonar mode name; kept untranslated, GG shows it in English</comment>
+  </data>
+  <data name="Mode_Switch" xml:space="preserve">
+    <value>Switch mode</value>
+    <comment>Tooltip</comment>
+  </data>
+  <data name="Mode_SwitchToClassic" xml:space="preserve">
+    <value>Switch to Classic</value>
+  </data>
+  <data name="Mode_SwitchToStream" xml:space="preserve">
+    <value>Switch to Stream</value>
+  </data>
+  <data name="Stream_Title" xml:space="preserve">
+    <value>Sonar is in Stream mode</value>
+    <comment>Overlay headline</comment>
+  </data>
+  <data name="Stream_Hint" xml:space="preserve">
+    <value>This tool only controls Classic mode.</value>
+    <comment>Overlay body</comment>
+  </data>
+  <data name="Stream_Streaming" xml:space="preserve">
+    <value>Stream</value>
+    <comment>Stream-mode sub-mix that goes out to viewers</comment>
+  </data>
+  <data name="Stream_Monitoring" xml:space="preserve">
+    <value>Monitor</value>
+    <comment>Stream-mode sub-mix the streamer hears</comment>
+  </data>
+  <data name="Hotkeys_Title" xml:space="preserve">
+    <value>Shortcuts</value>
+  </data>
+  <data name="Hotkeys_Reset" xml:space="preserve">
+    <value>Restore defaults</value>
+    <comment>Button</comment>
+  </data>
+  <data name="Hotkeys_Help" xml:space="preserve">
+    <value>Click a shortcut and press the new combination. Esc cancels, Del clears. At least one modifier key is required.</value>
+    <comment>Instructions above the shortcut list</comment>
+  </data>
+  <data name="Hotkeys_Clear" xml:space="preserve">
+    <value>Remove</value>
+    <comment>Accessibility name for the clear button</comment>
+  </data>
+  <data name="Hotkeys_ClearTip" xml:space="preserve">
+    <value>Remove shortcut</value>
+    <comment>Tooltip</comment>
+  </data>
+  <data name="Hotkeys_PressKey" xml:space="preserve">
+    <value>Press a key…</value>
+    <comment>Shown in the row being captured</comment>
+  </data>
+  <data name="Hotkeys_None" xml:space="preserve">
+    <value>None</value>
+    <comment>Shown when an action has no shortcut</comment>
+  </data>
+  <data name="Hotkeys_Taken" xml:space="preserve">
+    <value>Another application already owns this combination</value>
+    <comment>Tooltip on a shortcut that failed to register</comment>
+  </data>
+  <data name="Action_MicMute" xml:space="preserve">
+    <value>Mute / unmute microphone</value>
+  </data>
+  <data name="Action_MasterMute" xml:space="preserve">
+    <value>Mute / unmute master</value>
+  </data>
+  <data name="Action_MasterUp" xml:space="preserve">
+    <value>Master volume up</value>
+  </data>
+  <data name="Action_MasterDown" xml:space="preserve">
+    <value>Master volume down</value>
+  </data>
+  <data name="Action_TogglePanel" xml:space="preserve">
+    <value>Show / hide panel</value>
+  </data>
+  <data name="Action_GameUp" xml:space="preserve">
+    <value>Game volume up</value>
+  </data>
+  <data name="Action_GameDown" xml:space="preserve">
+    <value>Game volume down</value>
+  </data>
+  <data name="Action_GameMute" xml:space="preserve">
+    <value>Mute / unmute game</value>
+  </data>
+  <data name="Action_ChatUp" xml:space="preserve">
+    <value>Chat volume up</value>
+  </data>
+  <data name="Action_ChatDown" xml:space="preserve">
+    <value>Chat volume down</value>
+  </data>
+  <data name="Action_ChatMute" xml:space="preserve">
+    <value>Mute / unmute chat</value>
+  </data>
+  <data name="Action_MediaUp" xml:space="preserve">
+    <value>Media volume up</value>
+  </data>
+  <data name="Action_MediaDown" xml:space="preserve">
+    <value>Media volume down</value>
+  </data>
+  <data name="Action_MediaMute" xml:space="preserve">
+    <value>Mute / unmute media</value>
+  </data>
+  <data name="Tray_Muted" xml:space="preserve">
+    <value>SonarTray - master muted</value>
+  </data>
+  <data name="Tray_Volume" xml:space="preserve">
+    <value>SonarTray - master {0}%</value>
+    <comment>{0} is the volume percentage</comment>
+  </data>
+  <data name="Tray_StreamMode" xml:space="preserve">
+    <value>SonarTray - Sonar is in Stream mode</value>
+  </data>
+  <data name="Tray_Searching" xml:space="preserve">
+    <value>SonarTray - looking for Sonar…</value>
+  </data>
+  <data name="Tray_NotFound" xml:space="preserve">
+    <value>SonarTray - Sonar not found</value>
+  </data>
+  <data name="Osd_Muted" xml:space="preserve">
+    <value>Muted</value>
+    <comment>Shown instead of a percentage when the channel is muted</comment>
+  </data>
+  <data name="Osd_Percent" xml:space="preserve">
+    <value>{0}%</value>
+    <comment>{0} is the volume percentage; the sign goes first in Turkish</comment>
+  </data>
+  <data name="Device_NotConnected" xml:space="preserve">
+    <value>(not connected)</value>
+    <comment>Placeholder for a device that is no longer present</comment>
+  </data>
+  <data name="Profiles_Title" xml:space="preserve">
+    <value>Audio profile</value>
+  </data>
+  <data name="Profiles_Loading" xml:space="preserve">
+    <value>Loading…</value>
+  </data>
+  <data name="Profiles_None" xml:space="preserve">
+    <value>No profiles</value>
+  </data>
+  <data name="Presets_Title" xml:space="preserve">
+    <value>Presets</value>
+    <comment>Saved mixer snapshots</comment>
+  </data>
+  <data name="Presets_Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button</comment>
+  </data>
+  <data name="Presets_NameHint" xml:space="preserve">
+    <value>New preset name</value>
+    <comment>Placeholder in the name box</comment>
+  </data>
+  <data name="Presets_None" xml:space="preserve">
+    <value>No presets yet</value>
+  </data>
+  <data name="Presets_Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Accessibility name for the delete button</comment>
+  </data>
+  <data name="Presets_Full" xml:space="preserve">
+    <value>Preset limit reached</value>
+  </data>
+  <data name="Settings_Title" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Language</value>
+  </data>
+  <data name="Settings_LanguageAuto" xml:space="preserve">
+    <value>System language</value>
+    <comment>Language dropdown option</comment>
+  </data>
+  <data name="Settings_ShowAux" xml:space="preserve">
+    <value>Show the Aux channel</value>
+  </data>
+  <data name="Settings_VolumeStep" xml:space="preserve">
+    <value>Shortcut volume step</value>
+  </data>
+  <data name="Settings_Osd" xml:space="preserve">
+    <value>Show the on-screen display</value>
+  </data>
+  <data name="Settings_OsdDuration" xml:space="preserve">
+    <value>Display duration</value>
+  </data>
+  <data name="Settings_TrayWheel" xml:space="preserve">
+    <value>Mouse wheel over the tray icon changes volume</value>
+  </data>
+  <data name="Settings_CheckUpdates" xml:space="preserve">
+    <value>Check for updates</value>
+  </data>
+  <data name="Settings_RestartNeeded" xml:space="preserve">
+    <value>Takes effect after a restart</value>
+  </data>
+  <data name="Settings_Seconds" xml:space="preserve">
+    <value>{0:0.0} s</value>
+    <comment>{0} is a duration in seconds</comment>
+  </data>
+  <data name="Settings_OpenLog" xml:space="preserve">
+    <value>Open the log folder</value>
+    <comment>Button</comment>
+  </data>
+  <data name="Settings_Shortcuts" xml:space="preserve">
+    <value>Keyboard shortcuts</value>
+    <comment>Row that opens the hotkey page</comment>
+  </data>
+  <data name="Settings_Version" xml:space="preserve">
+    <value>Version {0}</value>
+    <comment>{0} is a version like 0.2.0</comment>
+  </data>
+  <data name="Panel_Back" xml:space="preserve">
+    <value>Back</value>
+    <comment>Navigates one page back</comment>
+  </data>
+  <data name="Update_Available" xml:space="preserve">
+    <value>Version {0} is available</value>
+    <comment>{0} is a version like 0.2.0</comment>
+  </data>
+  <data name="Update_Download" xml:space="preserve">
+    <value>Download</value>
+    <comment>Button</comment>
+  </data>
+  <data name="Update_UpToDate" xml:space="preserve">
+    <value>You are up to date</value>
+  </data>
+  <data name="Update_Skip" xml:space="preserve">
+    <value>Skip</value>
+    <comment>Button: stop offering this particular version</comment>
+  </data>
+</root>

@@ -1,6 +1,7 @@
 <UserControl x:Class="SonarTray.Views.MasterRow"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:res="clr-namespace:SonarTray.Resources"
              Focusable="False">
     <Grid Height="54" Background="Transparent">
 
@@ -31,7 +32,7 @@
                        VerticalAlignment="Center" Margin="8,0,0,0" TextTrimming="CharacterEllipsis"/>
 
             <ToggleButton Grid.Column="2" Style="{StaticResource MuteToggle}" AutomationProperties.Name="{Binding Name}"
-                          IsChecked="{Binding IsMuted, Mode=TwoWay}" ToolTip="Sustur / sesi aç" VerticalAlignment="Center"/>
+                          IsChecked="{Binding IsMuted, Mode=TwoWay}" ToolTip="{x:Static res:Strings.Panel_MuteToggle}" VerticalAlignment="Center"/>
 
             <Slider x:Name="VolumeSlider" Grid.Column="3" AutomationProperties.Name="{Binding Name}" Foreground="{Binding Accent}"
                     Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"

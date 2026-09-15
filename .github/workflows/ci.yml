@@ -19,8 +19,22 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: Format
+        run: dotnet format SonarTray.sln --verify-no-changes --severity warn
+
       - name: Build
-        run: dotnet build SonarTray.csproj -c Release -warnaserror
+        run: dotnet build SonarTray.sln -c Release -warnaserror
+
+      - name: Test
+        run: dotnet test SonarTray.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+
+      - name: Test sonuclari
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-results-${{ github.sha }}
+          path: "**/TestResults/*.trx"
+          retention-days: 14
 
       - name: Publish (framework-dependent)
         run: >

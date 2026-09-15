@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Media;
 using System.Windows.Threading;
 using SonarTray.Models;
+using SonarTray.Resources;
 using SonarTray.Services;
 
 namespace SonarTray.ViewModels;
@@ -26,12 +27,29 @@ public sealed class ChannelViewModel : ObservableObject
     private bool _muteInFlight;
     private bool _deviceInFlight;
 
+    private string? _selectedProfileId;
+    private bool _profileInFlight;
+    private bool _profilesLoaded;
+    private bool _profilesLoading;
+
     public ChannelSpec Spec { get; }
-    public string Name => Spec.Label;
+    public string Name => Strings.Get(Spec.LabelKey);
     public string Glyph => Spec.Glyph;
     public Brush Accent { get; }
     public bool HasDevicePicker => Spec.RedirectionId is not null;
     public ObservableCollection<AudioDeviceItem> Devices { get; } = new();
+
+    /// <summary>
+    /// Master is a mix rather than a virtual device, so Sonar has no profile for it. Every other
+    /// channel maps onto a virtualAudioDevice whose name is the channel's volume id.
+    /// </summary>
+    public bool HasProfilePicker => Spec.Kind != ChannelKind.Master;
+
+    /// <summary>
+    /// Filled the first time the menu is opened, not on every refresh: the full profile document
+    /// is megabytes, while the selected-profile document is kilobytes.
+    /// </summary>
+    public ObservableCollection<AudioProfileItem> Profiles { get; } = new();
 
     public ChannelViewModel(ChannelSpec spec, SonarConnection connection)
     {
@@ -95,6 +113,19 @@ public sealed class ChannelViewModel : ObservableObject
         }
     }
 
+    public string? SelectedProfileId
+    {
+        get => _selectedProfileId;
+        set
+        {
+            // Like the device picker, the ComboBox pushes null transiently while its items change.
+            if (value is null || string.Equals(value, _selectedProfileId, StringComparison.OrdinalIgnoreCase)) return;
+            _selectedProfileId = value;
+            OnPropertyChanged();
+            if (!_isSyncing) _ = SendProfileAsync(value);
+        }
+    }
+
     public bool IsDragging
     {
         get => _isDragging;
@@ -132,7 +163,7 @@ public sealed class ChannelViewModel : ObservableObject
                 bool missing = false;
                 if (deviceId is not null && !wanted.Any(d => SameId(d.Id, deviceId)))
                 {
-                    wanted.Add(new AudioDeviceItem(deviceId, "(bağlı değil)", IsMissing: true));
+                    wanted.Add(new AudioDeviceItem(deviceId, Strings.Device_NotConnected, IsMissing: true));
                     missing = true;
                 }
 
@@ -149,6 +180,83 @@ public sealed class ChannelViewModel : ObservableObject
         finally
         {
             _isSyncing = false;
+        }
+    }
+
+    /// <summary>
+    /// Applies the profile Sonar currently has selected for this channel. Called on panel open
+    /// and after a change, not on the fast poll - the document is comparatively expensive and
+    /// profiles almost never change behind the app's back.
+    /// </summary>
+    public void ApplySelectedProfile(ConfigDto? selected)
+    {
+        if (!HasProfilePicker || _profileInFlight) return;
+
+        _isSyncing = true;
+        try
+        {
+            if (selected is null) return;
+
+            // The menu may not have been opened yet, so the selected entry has to exist in the
+            // list for the ComboBox to be able to show it.
+            if (!Profiles.Any(p => SameId(p.Id, selected.Id)))
+                Profiles.Insert(0, new AudioProfileItem(selected.Id, selected.Name));
+
+            _selectedProfileId = selected.Id;
+            OnPropertyChanged(nameof(SelectedProfileId));
+        }
+        finally
+        {
+            _isSyncing = false;
+        }
+    }
+
+    /// <summary>
+    /// Fetches the full profile list for this channel. Called when the menu opens; does nothing
+    /// on subsequent opens.
+    /// </summary>
+    public async Task LoadProfilesAsync()
+    {
+        if (!HasProfilePicker || _profilesLoaded || _profilesLoading) return;
+
+        var client = _connection.Client;
+        if (client is null) return;
+
+        _profilesLoading = true;
+        try
+        {
+            var all = await client.GetConfigsAsync(CancellationToken.None);
+            if (all is null) return;
+
+            var mine = all.Where(c => string.Equals(c.VirtualAudioDevice, Spec.VolumeId, StringComparison.OrdinalIgnoreCase))
+                          .Select(c => new AudioProfileItem(c.Id, c.Name))
+                          .OrderBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase)
+                          .ToList();
+
+            _isSyncing = true;
+            try
+            {
+                Profiles.Clear();
+                foreach (var profile in mine) Profiles.Add(profile);
+
+                // Re-assert the selection: clearing the collection drops the ComboBox's.
+                OnPropertyChanged(nameof(SelectedProfileId));
+            }
+            finally
+            {
+                _isSyncing = false;
+            }
+
+            _profilesLoaded = true;
+            Log.Verbose($"Loaded {mine.Count} profiles for {Spec.VolumeId}");
+        }
+        catch (Exception ex)
+        {
+            _connection.ReportFailure(ex);
+        }
+        finally
+        {
+            _profilesLoading = false;
         }
     }
 
@@ -271,6 +379,26 @@ public sealed class ChannelViewModel : ObservableObject
         finally
         {
             _deviceInFlight = false;
+        }
+    }
+
+    private async Task SendProfileAsync(string configId)
+    {
+        var client = _connection.Client;
+        if (client is null) return;
+
+        _profileInFlight = true;
+        try
+        {
+            await client.SelectConfigAsync(configId, CancellationToken.None);
+        }
+        catch (Exception ex)
+        {
+            _connection.ReportFailure(ex);
+        }
+        finally
+        {
+            _profileInFlight = false;
         }
     }
 

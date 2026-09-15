@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarTray", "SonarTray.csproj", "{1710A000-80B1-46D8-9AF3-FA47918F0CC6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EA077075-AE3C-4580-AE0C-AC36FC5609E1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SonarTray.Tests", "tests\SonarTray.Tests\SonarTray.Tests.csproj", "{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1710A000-80B1-46D8-9AF3-FA47918F0CC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1710A000-80B1-46D8-9AF3-FA47918F0CC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1710A000-80B1-46D8-9AF3-FA47918F0CC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1710A000-80B1-46D8-9AF3-FA47918F0CC6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{C942C5F8-48D8-40A2-BA1A-57E66F94B5DA} = {EA077075-AE3C-4580-AE0C-AC36FC5609E1}
+	EndGlobalSection
+EndGlobal

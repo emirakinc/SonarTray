@@ -4,6 +4,7 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
 using SonarTray.Native;
+using SonarTray.Resources;
 using SonarTray.ViewModels;
 
 namespace SonarTray.Views;
@@ -17,7 +18,8 @@ namespace SonarTray.Views;
 /// </summary>
 public partial class OsdWindow : Window
 {
-    private static readonly TimeSpan HoldDuration = TimeSpan.FromMilliseconds(1300);
+    /// <summary>Used until <see cref="HoldDuration"/> is set from the user's settings.</summary>
+    private static readonly TimeSpan DefaultHoldDuration = TimeSpan.FromMilliseconds(1300);
     private static readonly Duration FadeIn = new(TimeSpan.FromMilliseconds(110));
     private static readonly Duration FadeOut = new(TimeSpan.FromMilliseconds(260));
 
@@ -36,7 +38,7 @@ public partial class OsdWindow : Window
         InitializeComponent();
         _danger = (Brush)FindResource("DangerBrush");
 
-        _hold = new DispatcherTimer(DispatcherPriority.Normal) { Interval = HoldDuration };
+        _hold = new DispatcherTimer(DispatcherPriority.Normal) { Interval = DefaultHoldDuration };
         _hold.Tick += (_, _) => { _hold.Stop(); FadeOutAndHide(); };
 
         SourceInitialized += (_, _) => ApplyOverlayStyles();
@@ -48,12 +50,24 @@ public partial class OsdWindow : Window
         };
     }
 
+    /// <summary>How long the display stays up. Re-read from settings on every change.</summary>
+    public TimeSpan HoldDuration
+    {
+        get => _hold.Interval;
+        set => _hold.Interval = value;
+    }
+
+    /// <summary>When false, <see cref="Show"/> does nothing at all.</summary>
+    public bool Enabled { get; set; } = true;
+
     public void Show(ChannelViewModel channel)
     {
+        if (!Enabled) return;
+
         Glyph.Text = channel.IsMuted ? "\uE74F" : channel.Glyph; // Mute, same glyph the panel toggle uses
         Glyph.Foreground = channel.IsMuted ? _danger : channel.Accent;
         NameText.Text = channel.Name;
-        Value.Text = channel.IsMuted ? "Kapalı" : $"%{channel.Percent}";
+        Value.Text = channel.IsMuted ? Strings.Osd_Muted : Strings.Format("Osd_Percent", channel.Percent);
 
         BarFill.Background = channel.IsMuted ? _danger : channel.Accent;
         BarFill.Opacity = channel.IsMuted ? 0.35 : 1.0;
