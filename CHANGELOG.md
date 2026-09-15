@@ -5,6 +5,8 @@ Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/), sürümleme
 
 ## [Yayımlanmadı]
 
+## [0.2.0] — 2026-09-15
+
 ### Eklendi
 
 - **İngilizce arayüz.** Varsayılan olarak sistem dili izlenir; ayarlardan Türkçe ya da İngilizce
@@ -65,5 +67,6 @@ Biçim [Keep a Changelog](https://keepachangelog.com/tr/1.1.0/), sürümleme
 - Başlık çubuğundaki ikon butonlarında tofu kutusu olarak çizilen ipuçları
 - Ses kaydırıcısının her yerinden basıp sürükleyebilme
 
-[Yayımlanmadı]: https://github.com/emirakinc/SonarTray/compare/v0.1.0...HEAD
+[Yayımlanmadı]: https://github.com/emirakinc/SonarTray/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/emirakinc/SonarTray/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/emirakinc/SonarTray/releases/tag/v0.1.0
